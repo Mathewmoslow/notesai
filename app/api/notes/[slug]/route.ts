@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
+  
   // Extract the HTML content from the request
   // In production, this would typically fetch from a database
   // For now, we'll return a simple HTML response
@@ -12,7 +14,7 @@ export async function GET(
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Note - ${params.slug}</title>
+  <title>Note - ${slug}</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
