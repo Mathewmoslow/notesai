@@ -25,7 +25,6 @@ import {
   ListItemButton,
   Chip,
   Divider,
-  Grid,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -235,10 +234,10 @@ export default function Home() {
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <TextField
-                    fullWidth
+                    sx={{ flex: '1 1 300px' }}
                     required
                     label="Note Title"
                     value={title}
@@ -246,10 +245,7 @@ export default function Home() {
                     placeholder="e.g., Management of Oncologic Disorders"
                     disabled={loading}
                   />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
+                  <FormControl sx={{ flex: '1 1 300px' }} required>
                     <InputLabel>Course</InputLabel>
                     <Select
                       value={course}
@@ -264,21 +260,18 @@ export default function Home() {
                       ))}
                     </Select>
                   </FormControl>
-                </Grid>
+                </Box>
 
-                <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <TextField
-                    fullWidth
+                    sx={{ flex: '1 1 300px' }}
                     label="Module (Optional)"
                     value={module}
                     onChange={(e) => setModule(e.target.value)}
                     placeholder="e.g., Module 2"
                     disabled={loading}
                   />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ flex: '1 1 300px', display: 'flex', gap: 2 }}>
                     <Button
                       variant="outlined"
                       component="label"
@@ -304,48 +297,44 @@ export default function Home() {
                       Paste
                     </Button>
                   </Box>
-                </Grid>
+                </Box>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    required
-                    multiline
-                    rows={12}
-                    label="Source Material"
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}
-                    placeholder="Paste or type your lecture transcript, slides, or notes here..."
-                    disabled={loading}
-                    sx={{ fontFamily: 'monospace' }}
-                  />
-                </Grid>
+                <TextField
+                  fullWidth
+                  required
+                  multiline
+                  rows={12}
+                  label="Source Material"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value)}
+                  placeholder="Paste or type your lecture transcript, slides, or notes here..."
+                  disabled={loading}
+                  sx={{ fontFamily: 'monospace' }}
+                />
 
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={loading || !title || !course || !source}
+                    startIcon={loading ? <CircularProgress size={20} /> : <GenerateIcon />}
+                  >
+                    {loading ? 'Generating...' : 'Generate Notes'}
+                  </Button>
+
+                  {generatedPath && (
                     <Button
-                      type="submit"
-                      variant="contained"
-                      size="large"
-                      disabled={loading || !title || !course || !source}
-                      startIcon={loading ? <CircularProgress size={20} /> : <GenerateIcon />}
+                      variant="outlined"
+                      href={generatedPath}
+                      target="_blank"
+                      startIcon={<NotesIcon />}
                     >
-                      {loading ? 'Generating...' : 'Generate Notes'}
+                      View Generated Notes
                     </Button>
-
-                    {generatedPath && (
-                      <Button
-                        variant="outlined"
-                        href={generatedPath}
-                        target="_blank"
-                        startIcon={<NotesIcon />}
-                      >
-                        View Generated Notes
-                      </Button>
-                    )}
-                  </Box>
-                </Grid>
-              </Grid>
+                  )}
+                </Box>
+              </Box>
             </Box>
           </TabPanel>
 
