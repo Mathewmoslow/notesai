@@ -36,6 +36,7 @@ import {
   MenuBook as TextbookIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
+import GoogleDriveBackup from '@/components/GoogleDriveBackup';
 
 interface Course {
   id: string;
@@ -290,6 +291,7 @@ export default function Home() {
           >
             Learning Path
           </Button>
+          <GoogleDriveBackup />
           <Button color="inherit" onClick={loadManifest}>
             <RefreshIcon sx={{ mr: 1 }} />
             Load Notes

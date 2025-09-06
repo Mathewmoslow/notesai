@@ -11,14 +11,18 @@
     "generate": "node tools/nursenotes-cli.mjs"
   },
   "dependencies": {
+    "@auth/core": "^0.34.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
     "dayjs": "^1.11.18",
     "fs-extra": "^11.3.1",
+    "google-auth-library": "^10.3.0",
+    "googleapis": "^159.0.0",
     "marked": "^16.2.1",
     "next": "15.5.2",
+    "next-auth": "^4.24.11",
     "openai": "^5.19.1",
     "react": "19.1.0",
     "react-dom": "19.1.0"
