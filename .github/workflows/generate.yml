@@ -1,0 +1,67 @@
+name: Generate NurseNotes
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: "Title of the note"
+        required: true
+        type: string
+      course:
+        description: "Course ID (e.g., NURS310, NURS320, NURS330, NURS335, NURS315)"
+        required: true
+        type: choice
+        options:
+          - NURS310
+          - NURS320
+          - NURS330
+          - NURS335
+          - NURS315
+      module:
+        description: "Module label (optional)"
+        required: false
+        type: string
+      source:
+        description: "Paste the full source text (lecture/slides/guideline)"
+        required: true
+        type: string
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Create source file
+        run: |
+          mkdir -p temp
+          cat > temp/source.txt << 'EOF'
+          ${{ github.event.inputs.source }}
+          EOF
+          
+      - name: Generate notes
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL || 'gpt-4o-mini' }}
+        run: |
+          node tools/nursenotes-cli.mjs \
+            --source temp/source.txt \
+            --course "${{ github.event.inputs.course }}" \
+            --title "${{ github.event.inputs.title }}" \
+            ${{ github.event.inputs.module && format('--module "{0}"', github.event.inputs.module) || '' }}
+            
+      - name: Commit and push
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Generate NurseNotes: ${{ github.event.inputs.title }}" || echo "No changes"
+          git push

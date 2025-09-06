@@ -1,95 +1,405 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
+
+import { useState } from 'react';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Alert,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Snackbar,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Tabs,
+  Tab,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  Chip,
+  Divider,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+} from '@mui/material';
+import {
+  School as SchoolIcon,
+  CloudUpload as CloudUploadIcon,
+  ContentPaste as PasteIcon,
+  Description as NotesIcon,
+  AutoAwesome as GenerateIcon,
+  Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import dayjs from 'dayjs';
+
+interface Course {
+  id: string;
+  name: string;
+  instructors: string;
+}
+
+const courses: Course[] = [
+  { id: 'NURS310', name: 'Adult Health I', instructors: 'G. Hagerstrom; S. Dumas' },
+  { id: 'NURS320', name: 'Adult Health II', instructors: 'G. Hagerstrom; S. Dumas' },
+  { id: 'NURS335', name: 'NCLEX Immersion I', instructors: 'A. Hernandez; G. Rivera' },
+  { id: 'NURS330', name: 'Childbearing Family/OBGYN', instructors: 'S. Abdo; M. Douglas' },
+  { id: 'NURS315', name: 'Gerontological Nursing', instructors: 'A. Layson' },
+];
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [tabValue, setTabValue] = useState(0);
+  const [title, setTitle] = useState('');
+  const [course, setCourse] = useState('NURS320');
+  const [module, setModule] = useState('');
+  const [source, setSource] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [generatedPath, setGeneratedPath] = useState('');
+  const [recentNotes, setRecentNotes] = useState<any[]>([]);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!title || !course || !source) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    setGeneratedPath('');
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          course,
+          module,
+          source,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess('Notes generated successfully!');
+        if (data.notePath) {
+          setGeneratedPath(data.notePath);
+          // Add to recent notes
+          setRecentNotes(prev => [{
+            title,
+            course,
+            module,
+            date: dayjs().format('YYYY-MM-DD'),
+            path: data.notePath,
+          }, ...prev].slice(0, 10));
+        }
+        // Clear form
+        setTitle('');
+        setModule('');
+        setSource('');
+      } else {
+        setError(data.error || 'Failed to generate notes');
+      }
+    } catch (err: any) {
+      setError('Network error: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
+      setError('Please upload a .txt or .md file');
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      setSource(text);
+      setSuccess(`File "${file.name}" loaded successfully`);
+    } catch (err) {
+      setError('Failed to read file');
+    }
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setSource(text);
+      setSuccess('Content pasted from clipboard');
+    } catch (err) {
+      setError('Failed to read clipboard. Please paste manually.');
+    }
+  };
+
+  const loadManifest = async () => {
+    try {
+      const response = await fetch('/content/manifest.json');
+      if (response.ok) {
+        const data = await response.json();
+        const allNotes: any[] = [];
+        data.courses.forEach((course: any) => {
+          course.modules.forEach((module: any) => {
+            allNotes.push({
+              ...module,
+              courseId: course.id,
+              courseTitle: course.title,
+            });
+          });
+        });
+        setRecentNotes(allNotes.slice(0, 10));
+      }
+    } catch (err) {
+      console.error('Failed to load manifest:', err);
+    }
+  };
+
+  return (
+    <>
+      <AppBar position="static" elevation={0}>
+        <Toolbar>
+          <SchoolIcon sx={{ mr: 2 }} />
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            NurseNotes-AI
+          </Typography>
+          <Button color="inherit" onClick={loadManifest}>
+            <RefreshIcon sx={{ mr: 1 }} />
+            Load Notes
+          </Button>
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Paper elevation={3} sx={{ p: 0 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} aria-label="tabs">
+              <Tab icon={<GenerateIcon />} label="Generate Notes" />
+              <Tab icon={<NotesIcon />} label="Recent Notes" />
+            </Tabs>
+          </Box>
+
+          <TabPanel value={tabValue} index={0}>
+            <Typography variant="h4" gutterBottom>
+              Generate Study Notes
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Transform your nursing course materials into comprehensive, exam-ready study notes.
+            </Typography>
+
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    required
+                    label="Note Title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., Management of Oncologic Disorders"
+                    disabled={loading}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth required>
+                    <InputLabel>Course</InputLabel>
+                    <Select
+                      value={course}
+                      onChange={(e) => setCourse(e.target.value)}
+                      label="Course"
+                      disabled={loading}
+                    >
+                      {courses.map((c) => (
+                        <MenuItem key={c.id} value={c.id}>
+                          {c.id} - {c.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Module (Optional)"
+                    value={module}
+                    onChange={(e) => setModule(e.target.value)}
+                    placeholder="e.g., Module 2"
+                    disabled={loading}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      startIcon={<CloudUploadIcon />}
+                      disabled={loading}
+                      fullWidth
+                    >
+                      Upload File
+                      <input
+                        type="file"
+                        hidden
+                        accept=".txt,.md"
+                        onChange={handleFileUpload}
+                      />
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={handlePaste}
+                      startIcon={<PasteIcon />}
+                      disabled={loading}
+                      fullWidth
+                    >
+                      Paste
+                    </Button>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    required
+                    multiline
+                    rows={12}
+                    label="Source Material"
+                    value={source}
+                    onChange={(e) => setSource(e.target.value)}
+                    placeholder="Paste or type your lecture transcript, slides, or notes here..."
+                    disabled={loading}
+                    sx={{ fontFamily: 'monospace' }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      disabled={loading || !title || !course || !source}
+                      startIcon={loading ? <CircularProgress size={20} /> : <GenerateIcon />}
+                    >
+                      {loading ? 'Generating...' : 'Generate Notes'}
+                    </Button>
+
+                    {generatedPath && (
+                      <Button
+                        variant="outlined"
+                        href={generatedPath}
+                        target="_blank"
+                        startIcon={<NotesIcon />}
+                      >
+                        View Generated Notes
+                      </Button>
+                    )}
+                  </Box>
+                </Grid>
+              </Grid>
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <Typography variant="h4" gutterBottom>
+              Recent Notes
+            </Typography>
+            
+            {recentNotes.length === 0 ? (
+              <Alert severity="info">
+                No notes generated yet. Create your first note to see it here!
+              </Alert>
+            ) : (
+              <List>
+                {recentNotes.map((note, index) => (
+                  <React.Fragment key={index}>
+                    <ListItem disablePadding>
+                      <ListItemButton
+                        component="a"
+                        href={note.path}
+                        target="_blank"
+                      >
+                        <ListItemText
+                          primary={note.title}
+                          secondary={
+                            <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                              <Chip label={note.courseId || note.course} size="small" color="primary" />
+                              {note.module && <Chip label={note.module} size="small" />}
+                              <Chip label={note.date} size="small" variant="outlined" />
+                            </Box>
+                          }
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                    {index < recentNotes.length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
+          </TabPanel>
+        </Paper>
+
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
+          onClose={() => setError('')}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <Alert severity="error" onClose={() => setError('')}>
+            {error}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!success}
+          autoHideDuration={4000}
+          onClose={() => setSuccess('')}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <Alert severity="success" onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </>
   );
 }
