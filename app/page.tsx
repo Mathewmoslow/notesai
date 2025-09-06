@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -96,6 +96,10 @@ export default function Home() {
   const [generatedPath, setGeneratedPath] = useState('');
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
 
+  useEffect(() => {
+    loadManifest();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -127,17 +131,64 @@ export default function Home() {
 
       if (response.ok) {
         setSuccess('Notes generated successfully!');
-        if (data.notePath) {
-          setGeneratedPath(data.notePath);
-          // Add to recent notes
-          setRecentNotes(prev => [{
-            title,
-            course,
-            module,
-            date: dayjs().format('YYYY-MM-DD'),
-            path: data.notePath,
-          }, ...prev].slice(0, 10));
+        
+        // Store the generated note data
+        const noteData = {
+          slug: data.slug,
+          title: data.title,
+          course: data.course,
+          courseTitle: data.courseTitle,
+          module: data.module,
+          date: data.date,
+          html: data.html,
+          markdown: data.markdown
+        };
+        
+        // Store in localStorage
+        const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+        storedNotes[data.slug] = noteData;
+        localStorage.setItem('generated-notes', JSON.stringify(storedNotes));
+        
+        // Update courses manifest in localStorage
+        const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+        let courseEntry = manifest.courses.find((c: any) => c.id === data.course);
+        if (!courseEntry) {
+          courseEntry = {
+            id: data.course,
+            title: data.courseTitle,
+            modules: []
+          };
+          manifest.courses.push(courseEntry);
         }
+        
+        // Add new module to course
+        const moduleEntry = {
+          slug: data.slug,
+          title: data.title,
+          date: data.date,
+          path: `/notes/${data.slug}`,
+          module: data.module
+        };
+        
+        // Remove duplicate if exists and add new one at the beginning
+        courseEntry.modules = [moduleEntry, ...courseEntry.modules.filter((m: any) => m.slug !== data.slug)];
+        localStorage.setItem('courses-manifest', JSON.stringify(manifest));
+        
+        // Set generated path for viewing
+        setGeneratedPath(`/notes/${data.slug}`);
+        
+        // Add to recent notes
+        setRecentNotes(prev => [{
+          title: data.title,
+          course: data.course,
+          courseId: data.course,
+          courseTitle: data.courseTitle,
+          module: data.module,
+          date: data.date,
+          path: `/notes/${data.slug}`,
+          slug: data.slug
+        }, ...prev].slice(0, 10));
+        
         // Clear form
         setTitle('');
         setModule('');
@@ -181,23 +232,20 @@ export default function Home() {
     }
   };
 
-  const loadManifest = async () => {
+  const loadManifest = () => {
     try {
-      const response = await fetch('/content/manifest.json');
-      if (response.ok) {
-        const data = await response.json();
-        const allNotes: Note[] = [];
-        data.courses.forEach((course: { id: string; title: string; modules: Note[] }) => {
-          course.modules.forEach((module: Note) => {
-            allNotes.push({
-              ...module,
-              courseId: course.id,
-              courseTitle: course.title,
-            });
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      const allNotes: Note[] = [];
+      manifest.courses.forEach((course: { id: string; title: string; modules: Note[] }) => {
+        course.modules.forEach((module: Note) => {
+          allNotes.push({
+            ...module,
+            courseId: course.id,
+            courseTitle: course.title,
           });
         });
-        setRecentNotes(allNotes.slice(0, 10));
-      }
+      });
+      setRecentNotes(allNotes.slice(0, 10));
     } catch {
       console.error('Failed to load manifest');
     }
@@ -343,8 +391,7 @@ export default function Home() {
                   {generatedPath && (
                     <Button
                       variant="outlined"
-                      href={generatedPath}
-                      target="_blank"
+                      onClick={() => window.location.href = generatedPath}
                       startIcon={<NotesIcon />}
                     >
                       View Generated Notes
@@ -370,9 +417,7 @@ export default function Home() {
                   <React.Fragment key={index}>
                     <ListItem disablePadding>
                       <ListItemButton
-                        component="a"
-                        href={note.path}
-                        target="_blank"
+                        onClick={() => window.location.href = note.path}
                       >
                         <ListItemText
                           primary={note.title}

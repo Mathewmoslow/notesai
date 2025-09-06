@@ -76,38 +76,35 @@ export default function SemesterOverview() {
     loadAllData();
   }, []);
 
-  const loadAllData = async () => {
+  const loadAllData = () => {
     try {
-      const response = await fetch('/content/manifest.json');
-      if (response.ok) {
-        const data = await response.json();
-        setCourses(data.courses);
-        
-        // Load progress for all courses
-        const progress: { [key: string]: Set<string> } = {};
-        let totalCompleted = 0;
-        let totalModules = 0;
-        
-        data.courses.forEach((course: Course) => {
-          const saved = localStorage.getItem(`course-progress-${course.id}`);
-          if (saved) {
-            const completed = new Set<string>(JSON.parse(saved));
-            progress[course.id] = completed;
-            totalCompleted += completed.size;
-          } else {
-            progress[course.id] = new Set<string>();
-          }
-          totalModules += course.modules.length;
-        });
-        
-        setAllProgress(progress);
-        setSemesterStats({
-          totalModules,
-          completedModules: totalCompleted,
-          totalCourses: data.courses.length,
-          studyHours: Math.round(totalCompleted * 1.5), // Estimate 1.5 hours per module
-        });
-      }
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      setCourses(manifest.courses);
+      
+      // Load progress for all courses
+      const progress: { [key: string]: Set<string> } = {};
+      let totalCompleted = 0;
+      let totalModules = 0;
+      
+      manifest.courses.forEach((course: Course) => {
+        const saved = localStorage.getItem(`course-progress-${course.id}`);
+        if (saved) {
+          const completed = new Set<string>(JSON.parse(saved));
+          progress[course.id] = completed;
+          totalCompleted += completed.size;
+        } else {
+          progress[course.id] = new Set<string>();
+        }
+        totalModules += course.modules.length;
+      });
+      
+      setAllProgress(progress);
+      setSemesterStats({
+        totalModules,
+        completedModules: totalCompleted,
+        totalCourses: manifest.courses.length,
+        studyHours: Math.round(totalCompleted * 1.5), // Estimate 1.5 hours per module
+      });
     } catch (error) {
       console.error('Failed to load semester data:', error);
     }

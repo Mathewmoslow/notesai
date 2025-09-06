@@ -2,25 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { marked } from 'marked';
 import dayjs from 'dayjs';
-import fs from 'fs-extra';
-import path from 'path';
 
 interface CourseInstructor {
   [key: string]: string;
-}
-
-interface Module {
-  slug: string;
-  title: string;
-  date: string;
-  path: string;
-  module?: string;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  modules: Module[];
 }
 
 const courseInstructors: CourseInstructor = {
@@ -196,60 +180,17 @@ Instructors: ${courseInstructors[course] || ''}`;
 
     // Generate slug for file naming
     const slug = `${dayjs().format('YYYY-MM-DD')}-${slugify(title)}`;
-    
-    // Save files if in development (won't persist in Vercel)
-    if (process.env.NODE_ENV === 'development') {
-      try {
-        // Save markdown
-        const mdPath = path.join(process.cwd(), 'content', 'raw', `${slug}.md`);
-        await fs.ensureDir(path.dirname(mdPath));
-        await fs.writeFile(mdPath, markdownContent, 'utf8');
-        
-        // Save HTML
-        const htmlPath = path.join(process.cwd(), 'public', 'notes', `${slug}.html`);
-        await fs.ensureDir(path.dirname(htmlPath));
-        await fs.writeFile(htmlPath, htmlContent, 'utf8');
-        
-        // Update manifest
-        const manifestPath = path.join(process.cwd(), 'content', 'manifest.json');
-        let manifest: { courses: Course[] } = { courses: [] };
-        
-        if (await fs.pathExists(manifestPath)) {
-          manifest = await fs.readJson(manifestPath);
-        }
-        
-        let courseEntry = manifest.courses.find((c: Course) => c.id === course);
-        if (!courseEntry) {
-          const newCourseEntry = { 
-            id: course, 
-            title: getCourseTitle(course), 
-            modules: [] 
-          };
-          manifest.courses.push(newCourseEntry);
-          courseEntry = newCourseEntry;
-        }
-        
-        // Add new module
-        courseEntry.modules = [{
-          slug,
-          title,
-          date: dayjs().format('YYYY-MM-DD'),
-          path: `/notes/${slug}.html`,
-          module: module || ''
-        }, ...courseEntry.modules.filter((m: Module) => m.slug !== slug)];
-        
-        await fs.writeJson(manifestPath, manifest, { spaces: 2 });
-      } catch (error) {
-        console.error('Failed to save files locally:', error);
-      }
-    }
 
-    // Return the generated content
+    // Return the generated content with all metadata
     return NextResponse.json({
       success: true,
       message: 'Notes generated successfully',
       slug,
-      notePath: `/api/notes/${slug}`,
+      title,
+      course,
+      courseTitle: getCourseTitle(course),
+      module: module || '',
+      date: dayjs().format('YYYY-MM-DD'),
       markdown: markdownContent,
       html: htmlContent
     });

@@ -88,15 +88,19 @@ export default function CoursePage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
 
-  const loadCourseData = async () => {
+  const loadCourseData = () => {
     try {
-      const response = await fetch('/content/manifest.json');
-      if (response.ok) {
-        const data = await response.json();
-        const courseData = data.courses.find((c: Course) => c.id === courseId);
-        if (courseData) {
-          setCourse(courseData);
-        }
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      const courseData = manifest.courses.find((c: Course) => c.id === courseId);
+      if (courseData) {
+        setCourse(courseData);
+      } else {
+        // If no data, create empty course structure
+        setCourse({
+          id: courseId,
+          title: courseInfo[courseId]?.title || courseId,
+          modules: []
+        });
       }
     } catch (error) {
       console.error('Failed to load course data:', error);
@@ -285,7 +289,7 @@ export default function CoursePage() {
                     <ListItem disablePadding>
                       <ListItemButton
                         onClick={() => {
-                          window.open(module.path, '_blank');
+                          router.push(`/notes/${module.slug}`);
                           if (!completedModules.has(module.slug)) {
                             toggleModuleComplete(module.slug);
                           }
