@@ -123,10 +123,7 @@ Instructors: ${courseInstructors[course] || ''}`;
     }
 
     // Generate HTML from markdown
-    const htmlBody = await marked.parse(markdownContent, { 
-      mangle: false, 
-      headerIds: true 
-    });
+    const htmlBody = await marked.parse(markdownContent);
     
     // Create HTML document
     const dateStr = dayjs().format('MMMM D, YYYY');
@@ -215,7 +212,7 @@ Instructors: ${courseInstructors[course] || ''}`;
         
         // Update manifest
         const manifestPath = path.join(process.cwd(), 'content', 'manifest.json');
-        let manifest = { courses: [] };
+        let manifest: { courses: Course[] } = { courses: [] };
         
         if (await fs.pathExists(manifestPath)) {
           manifest = await fs.readJson(manifestPath);
@@ -223,12 +220,13 @@ Instructors: ${courseInstructors[course] || ''}`;
         
         let courseEntry = manifest.courses.find((c: Course) => c.id === course);
         if (!courseEntry) {
-          courseEntry = { 
+          const newCourseEntry = { 
             id: course, 
             title: getCourseTitle(course), 
             modules: [] 
           };
-          manifest.courses.push(courseEntry);
+          manifest.courses.push(newCourseEntry);
+          courseEntry = newCourseEntry;
         }
         
         // Add new module
