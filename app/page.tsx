@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Paper,
@@ -17,7 +17,6 @@ import {
   Snackbar,
   AppBar,
   Toolbar,
-  IconButton,
   Tabs,
   Tab,
   List,
@@ -26,9 +25,6 @@ import {
   ListItemButton,
   Chip,
   Divider,
-  Card,
-  CardContent,
-  CardActions,
   Grid,
 } from '@mui/material';
 import {
@@ -76,6 +72,17 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+interface Note {
+  title: string;
+  course: string;
+  courseId?: string;
+  courseTitle?: string;
+  module?: string;
+  date: string;
+  path: string;
+  slug?: string;
+}
+
 export default function Home() {
   const [tabValue, setTabValue] = useState(0);
   const [title, setTitle] = useState('');
@@ -86,7 +93,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [generatedPath, setGeneratedPath] = useState('');
-  const [recentNotes, setRecentNotes] = useState<any[]>([]);
+  const [recentNotes, setRecentNotes] = useState<Note[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,8 +144,9 @@ export default function Home() {
       } else {
         setError(data.error || 'Failed to generate notes');
       }
-    } catch (err: any) {
-      setError('Network error: ' + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError('Network error: ' + errorMessage);
     } finally {
       setLoading(false);
     }
@@ -157,7 +165,7 @@ export default function Home() {
       const text = await file.text();
       setSource(text);
       setSuccess(`File "${file.name}" loaded successfully`);
-    } catch (err) {
+    } catch {
       setError('Failed to read file');
     }
   };
@@ -167,7 +175,7 @@ export default function Home() {
       const text = await navigator.clipboard.readText();
       setSource(text);
       setSuccess('Content pasted from clipboard');
-    } catch (err) {
+    } catch {
       setError('Failed to read clipboard. Please paste manually.');
     }
   };
@@ -177,9 +185,9 @@ export default function Home() {
       const response = await fetch('/content/manifest.json');
       if (response.ok) {
         const data = await response.json();
-        const allNotes: any[] = [];
-        data.courses.forEach((course: any) => {
-          course.modules.forEach((module: any) => {
+        const allNotes: Note[] = [];
+        data.courses.forEach((course: { id: string; title: string; modules: Note[] }) => {
+          course.modules.forEach((module: Note) => {
             allNotes.push({
               ...module,
               courseId: course.id,
@@ -189,8 +197,8 @@ export default function Home() {
         });
         setRecentNotes(allNotes.slice(0, 10));
       }
-    } catch (err) {
-      console.error('Failed to load manifest:', err);
+    } catch {
+      console.error('Failed to load manifest');
     }
   };
 
