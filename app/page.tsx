@@ -33,6 +33,8 @@ import {
   Description as NotesIcon,
   AutoAwesome as GenerateIcon,
   Refresh as RefreshIcon,
+  MenuBook as TextbookIcon,
+  Timeline as TimelineIcon,
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 
@@ -209,6 +211,20 @@ export default function Home() {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             NurseNotes-AI
           </Typography>
+          <Button 
+            color="inherit" 
+            onClick={() => window.location.href = '/semester'}
+            startIcon={<TextbookIcon />}
+          >
+            Semester View
+          </Button>
+          <Button 
+            color="inherit" 
+            onClick={() => window.location.href = '/courses/NURS320'}
+            startIcon={<TimelineIcon />}
+          >
+            Learning Path
+          </Button>
           <Button color="inherit" onClick={loadManifest}>
             <RefreshIcon sx={{ mr: 1 }} />
             Load Notes
@@ -222,6 +238,7 @@ export default function Home() {
             <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} aria-label="tabs">
               <Tab icon={<GenerateIcon />} label="Generate Notes" />
               <Tab icon={<NotesIcon />} label="Recent Notes" />
+              <Tab icon={<TextbookIcon />} label="My Courses" />
             </Tabs>
           </Box>
 
@@ -374,6 +391,57 @@ export default function Home() {
                 ))}
               </List>
             )}
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Typography variant="h4" gutterBottom>
+              My Learning Modules
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Access your complete digital textbook organized by course. Each module builds on the previous one to create a comprehensive learning experience.
+            </Typography>
+            
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+              {courses.map((course) => (
+                <Paper key={course.id} sx={{ p: 3, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}>
+                  <Box 
+                    onClick={() => window.location.href = `/courses/${course.id}`}
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
+                    <Box>
+                      <Typography variant="h6">
+                        {course.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Course ID: {course.id} • Instructors: {course.instructors}
+                      </Typography>
+                    </Box>
+                    <Button variant="contained" endIcon={<TextbookIcon />}>
+                      View Course
+                    </Button>
+                  </Box>
+                </Paper>
+              ))}
+              
+              <Paper sx={{ p: 3, bgcolor: 'primary.main', color: 'white' }}>
+                <Box 
+                  onClick={() => window.location.href = '/semester'}
+                  sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <Box>
+                    <Typography variant="h6">
+                      Complete Semester Overview
+                    </Typography>
+                    <Typography variant="body2">
+                      View all courses as a comprehensive digital textbook with progress tracking
+                    </Typography>
+                  </Box>
+                  <Button variant="contained" color="secondary" endIcon={<TimelineIcon />}>
+                    View Semester
+                  </Button>
+                </Box>
+              </Paper>
+            </Box>
           </TabPanel>
         </Paper>
 
