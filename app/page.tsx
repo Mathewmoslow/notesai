@@ -36,7 +36,6 @@ import {
   MenuBook as TextbookIcon,
   Timeline as TimelineIcon,
 } from '@mui/icons-material';
-import dayjs from 'dayjs';
 
 interface Course {
   id: string;
@@ -82,6 +81,24 @@ interface Note {
   date: string;
   path: string;
   slug?: string;
+}
+
+interface ModuleEntry {
+  slug: string;
+  title: string;
+  date: string;
+  path: string;
+  module: string;
+}
+
+interface CourseEntry {
+  id: string;
+  title: string;
+  modules: ModuleEntry[];
+}
+
+interface Manifest {
+  courses: CourseEntry[];
 }
 
 export default function Home() {
@@ -150,8 +167,8 @@ export default function Home() {
         localStorage.setItem('generated-notes', JSON.stringify(storedNotes));
         
         // Update courses manifest in localStorage
-        const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
-        let courseEntry = manifest.courses.find((c: any) => c.id === data.course);
+        const manifest: Manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+        let courseEntry = manifest.courses.find((c: CourseEntry) => c.id === data.course);
         if (!courseEntry) {
           courseEntry = {
             id: data.course,
@@ -171,7 +188,7 @@ export default function Home() {
         };
         
         // Remove duplicate if exists and add new one at the beginning
-        courseEntry.modules = [moduleEntry, ...courseEntry.modules.filter((m: any) => m.slug !== data.slug)];
+        courseEntry.modules = [moduleEntry, ...courseEntry.modules.filter((m: ModuleEntry) => m.slug !== data.slug)];
         localStorage.setItem('courses-manifest', JSON.stringify(manifest));
         
         // Set generated path for viewing

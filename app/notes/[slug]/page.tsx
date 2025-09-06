@@ -10,7 +10,6 @@ export default function NotePage() {
   const router = useRouter();
   const slug = params.slug as string;
   const [noteHtml, setNoteHtml] = useState<string>('');
-  const [noteTitle, setNoteTitle] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +19,6 @@ export default function NotePage() {
     
     if (note) {
       setNoteHtml(note.html);
-      setNoteTitle(note.title);
     } else {
       setNoteHtml(`
         <div style="padding: 40px; text-align: center;">
@@ -28,7 +26,6 @@ export default function NotePage() {
           <p>The requested note could not be found. Please generate it first.</p>
         </div>
       `);
-      setNoteTitle('Note Not Found');
     }
     setLoading(false);
   }, [slug]);
