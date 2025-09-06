@@ -9,6 +9,20 @@ interface CourseInstructor {
   [key: string]: string;
 }
 
+interface Module {
+  slug: string;
+  title: string;
+  date: string;
+  path: string;
+  module?: string;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  modules: Module[];
+}
+
 const courseInstructors: CourseInstructor = {
   NURS310: 'G. Hagerstrom; S. Dumas',
   NURS320: 'G. Hagerstrom; S. Dumas',
@@ -207,7 +221,7 @@ Instructors: ${courseInstructors[course] || ''}`;
           manifest = await fs.readJson(manifestPath);
         }
         
-        let courseEntry = manifest.courses.find((c: any) => c.id === course);
+        let courseEntry = manifest.courses.find((c: Course) => c.id === course);
         if (!courseEntry) {
           courseEntry = { 
             id: course, 
@@ -224,7 +238,7 @@ Instructors: ${courseInstructors[course] || ''}`;
           date: dayjs().format('YYYY-MM-DD'),
           path: `/notes/${slug}.html`,
           module: module || ''
-        }, ...courseEntry.modules.filter((m: any) => m.slug !== slug)];
+        }, ...courseEntry.modules.filter((m: Module) => m.slug !== slug)];
         
         await fs.writeJson(manifestPath, manifest, { spaces: 2 });
       } catch (error) {
