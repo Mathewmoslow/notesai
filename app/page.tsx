@@ -150,7 +150,7 @@ export default function Home() {
       if (response.ok) {
         setSuccess('Notes generated successfully!');
         
-        // Store the generated note data
+        // Store the generated note data with original input
         const noteData = {
           slug: data.slug,
           title: data.title,
@@ -159,7 +159,8 @@ export default function Home() {
           module: data.module,
           date: data.date,
           html: data.html,
-          markdown: data.markdown
+          markdown: data.markdown,
+          originalInput: data.originalInput // Store original input for redeploy
         };
         
         // Store in localStorage
@@ -317,10 +318,11 @@ export default function Home() {
               Transform your nursing course materials into comprehensive, exam-ready study notes.
             </Typography>
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }} suppressHydrationWarning>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <TextField
+                    id="note-title"
                     sx={{ flex: '1 1 300px' }}
                     required
                     label="Note Title"
@@ -330,8 +332,10 @@ export default function Home() {
                     disabled={loading}
                   />
                   <FormControl sx={{ flex: '1 1 300px' }} required>
-                    <InputLabel>Course</InputLabel>
+                    <InputLabel id="course-label">Course</InputLabel>
                     <Select
+                      id="course-select"
+                      labelId="course-label"
                       value={course}
                       onChange={(e) => setCourse(e.target.value)}
                       label="Course"
@@ -348,6 +352,7 @@ export default function Home() {
 
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <TextField
+                    id="module-input"
                     sx={{ flex: '1 1 300px' }}
                     label="Module (Optional)"
                     value={module}
@@ -384,6 +389,7 @@ export default function Home() {
                 </Box>
 
                 <TextField
+                  id="source-material"
                   fullWidth
                   required
                   multiline
