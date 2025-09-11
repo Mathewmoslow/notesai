@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,20 +37,22 @@ export async function POST(req: NextRequest) {
       const page = await pdf.getPage(pageNum);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .filter((item): item is TextItem => 'str' in item)
+        .map((item) => item.str)
         .join(' ');
       fullText += pageText + '\n\n';
     }
     
     // Get metadata
     const metadata = await pdf.getMetadata();
+    const info = metadata.info as Record<string, string | undefined>;
     
     return NextResponse.json({
       text: fullText,
       metadata: {
         format: 'PDF',
-        title: metadata.info?.Title || file.name.replace(/\.pdf$/i, ''),
-        author: metadata.info?.Author,
+        title: info?.Title || file.name.replace(/\.pdf$/i, ''),
+        author: info?.Author,
         pages: numPages,
       }
     });

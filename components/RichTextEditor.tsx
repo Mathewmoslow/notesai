@@ -501,6 +501,7 @@ export default function RichTextEditor({ initialContent, onSave, onPrint }: Rich
           
           <Tooltip title="Insert Image">
             <IconButton onClick={insertImage} size="small">
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image />
             </IconButton>
           </Tooltip>

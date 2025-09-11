@@ -316,7 +316,7 @@ export class DocumentParser {
             }
           });
         },
-        error: (error) => {
+        error: (error: Error) => {
           reject(new Error(`CSV parsing error: ${error.message}`));
         }
       });
