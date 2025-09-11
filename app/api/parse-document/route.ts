@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import pdfParse from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,17 +23,34 @@ export async function POST(req: NextRequest) {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
     
-    const data = await pdfParse(buffer);
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    let fullText = '';
+    const numPages = pdf.numPages;
+    
+    // Extract text from each page
+    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n\n';
+    }
+    
+    // Get metadata
+    const metadata = await pdf.getMetadata();
     
     return NextResponse.json({
-      text: data.text,
+      text: fullText,
       metadata: {
         format: 'PDF',
-        title: data.info?.Title || file.name.replace(/\.pdf$/i, ''),
-        author: data.info?.Author,
-        pages: data.numpages,
+        title: metadata.info?.Title || file.name.replace(/\.pdf$/i, ''),
+        author: metadata.info?.Author,
+        pages: numPages,
       }
     });
     

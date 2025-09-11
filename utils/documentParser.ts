@@ -182,9 +182,11 @@ export class DocumentParser {
     const arrayBuffer = await file.arrayBuffer();
     
     try {
-      // Try to read as a zip file (PPTX is essentially a zip)
-      const JSZip = (await import('jszip')).default;
-      const zip = await JSZip.loadAsync(arrayBuffer);
+      // Dynamically import JSZip to avoid build issues
+      const JSZipModule = await import('jszip');
+      const JSZip = JSZipModule.default || JSZipModule;
+      const zip = new JSZip();
+      await zip.loadAsync(arrayBuffer);
       
       let fullText = '';
       let slideCount = 0;
@@ -242,8 +244,9 @@ export class DocumentParser {
       };
     } catch (error) {
       // Fallback for older PPT format or if JSZip fails
+      console.error('PowerPoint parsing error:', error);
       return {
-        text: 'PowerPoint file detected but could not extract text. Please save as PPTX format or copy text manually.',
+        text: 'PowerPoint file detected but could not extract text. Please save as PPTX format or copy text manually. Error: ' + (error instanceof Error ? error.message : 'Unknown error'),
         metadata: {
           format: 'Microsoft PowerPoint',
           title: file.name.replace(/\.pptx?$/i, ''),
