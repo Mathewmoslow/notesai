@@ -18,13 +18,21 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
-  Divider
+  Divider,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import { 
   ArrowBack as BackIcon,
   Refresh as RefreshIcon,
-  KeyboardArrowDown as ArrowDownIcon
+  KeyboardArrowDown as ArrowDownIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Print as PrintIcon
 } from '@mui/icons-material';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface NoteData {
   slug: string;
@@ -60,6 +68,9 @@ export default function NotePage() {
   const [customPrompt, setCustomPrompt] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [editMode, setEditMode] = useState(false);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     // Load note from localStorage
@@ -197,6 +208,77 @@ export default function NotePage() {
     setCustomPrompt('');
   };
 
+  const handleEditToggle = () => {
+    setEditMode(!editMode);
+  };
+
+  const handleSaveEdit = async (newContent: string) => {
+    setSaving(true);
+    try {
+      // Update the note in localStorage
+      const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+      if (storedNotes[slug]) {
+        storedNotes[slug].html = newContent;
+        localStorage.setItem('generated-notes', JSON.stringify(storedNotes));
+        setNoteHtml(newContent);
+        setSuccess('Note saved successfully!');
+        setEditMode(false);
+      }
+    } catch {
+      setError('Failed to save note');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      // Remove from localStorage
+      const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+      delete storedNotes[slug];
+      localStorage.setItem('generated-notes', JSON.stringify(storedNotes));
+      
+      // Remove from manifest
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      manifest.courses.forEach((course: { modules: { slug: string }[] }) => {
+        course.modules = course.modules.filter((m: { slug: string }) => m.slug !== slug);
+      });
+      localStorage.setItem('courses-manifest', JSON.stringify(manifest));
+      
+      setSuccess('Note deleted successfully!');
+      setDeleteConfirmDialog(false);
+      
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        router.push('/');
+      }, 1500);
+    } catch {
+      setError('Failed to delete note');
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${noteData?.title || 'Note'}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              @media print { body { padding: 0; } }
+            </style>
+          </head>
+          <body>
+            ${noteHtml}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   if (loading) {
     return (
       <Container>
@@ -218,50 +300,103 @@ export default function NotePage() {
           Back
         </Button>
         
-        {hasOriginalInput && (
-          <Box>
-            <Button
-              variant="contained"
-              startIcon={<RefreshIcon />}
-              endIcon={<ArrowDownIcon />}
-              onClick={handleRedeployMenuOpen}
-              disabled={redeploying}
-            >
-              {redeploying ? 'Redeploying...' : 'Redeploy'}
-            </Button>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleRedeployMenuClose}
-            >
-              <MenuItem onClick={() => handleRedeploy('previous')}>
-                <Box>
-                  <Typography variant="body1">Redeploy with Previous</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Use original system prompt (v{noteData?.originalInput?.systemPromptVersion || '1'})
-                  </Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem onClick={() => handleRedeploy('current')}>
-                <Box>
-                  <Typography variant="body1">Redeploy with Current</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Use latest system prompt (v2)
-                  </Typography>
-                </Box>
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={() => handleRedeploy('custom')}>
-                <Box>
-                  <Typography variant="body1">Redeploy with Custom Prompt</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Provide your own system prompt
-                  </Typography>
-                </Box>
-              </MenuItem>
-            </Menu>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          {!editMode && (
+            <>
+              <Tooltip title="Edit Note">
+                <IconButton onClick={handleEditToggle} color="primary">
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              
+              <Tooltip title="Print Note">
+                <IconButton onClick={handlePrint}>
+                  <PrintIcon />
+                </IconButton>
+              </Tooltip>
+              
+              <Tooltip title="Delete Note">
+                <IconButton onClick={() => setDeleteConfirmDialog(true)} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
+          
+          {editMode && (
+            <>
+              <Button
+                variant="contained"
+                startIcon={<SaveIcon />}
+                onClick={() => handleSaveEdit(noteHtml)}
+                disabled={saving}
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </Button>
+              
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={() => {
+                  setEditMode(false);
+                  // Reload original content
+                  const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+                  const note = storedNotes[slug];
+                  if (note) {
+                    setNoteHtml(note.html);
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+          
+          {hasOriginalInput && !editMode && (
+            <Box>
+              <Button
+                variant="contained"
+                startIcon={<RefreshIcon />}
+                endIcon={<ArrowDownIcon />}
+                onClick={handleRedeployMenuOpen}
+                disabled={redeploying}
+              >
+                {redeploying ? 'Redeploying...' : 'Redeploy'}
+              </Button>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleRedeployMenuClose}
+              >
+                <MenuItem onClick={() => handleRedeploy('previous')}>
+                  <Box>
+                    <Typography variant="body1">Redeploy with Previous</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Use original system prompt (v{noteData?.originalInput?.systemPromptVersion || '1'})
+                    </Typography>
+                  </Box>
+                </MenuItem>
+                <MenuItem onClick={() => handleRedeploy('current')}>
+                  <Box>
+                    <Typography variant="body1">Redeploy with Current</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Use latest system prompt (v2)
+                    </Typography>
+                  </Box>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={() => handleRedeploy('custom')}>
+                  <Box>
+                    <Typography variant="body1">Redeploy with Custom Prompt</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Provide your own system prompt
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              </Menu>
+            </Box>
+          )}
+        </Box>
       </Box>
       
       {!hasOriginalInput && noteData && (
@@ -286,9 +421,42 @@ export default function NotePage() {
       
       <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
         <Paper elevation={0} sx={{ p: 0 }}>
-          <div dangerouslySetInnerHTML={{ __html: noteHtml }} />
+          {editMode ? (
+            <RichTextEditor
+              initialContent={noteHtml}
+              onSave={handleSaveEdit}
+              onPrint={handlePrint}
+            />
+          ) : (
+            <div dangerouslySetInnerHTML={{ __html: noteHtml }} />
+          )}
         </Paper>
       </Container>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmDialog}
+        onClose={() => setDeleteConfirmDialog(false)}
+      >
+        <DialogTitle>Delete Note</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete &quot;{noteData?.title}&quot;? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirmDialog(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            color="error"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Custom Prompt Dialog */}
       <Dialog 
