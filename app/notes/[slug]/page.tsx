@@ -148,7 +148,7 @@ export default function NotePage() {
         
         // Update courses manifest
         const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
-        let courseEntry = manifest.courses.find((c: any) => c.id === data.course);
+        let courseEntry = manifest.courses.find((c: { id: string }) => c.id === data.course);
         if (!courseEntry) {
           courseEntry = {
             id: data.course,
@@ -167,7 +167,7 @@ export default function NotePage() {
           module: data.module
         };
         
-        courseEntry.modules = [moduleEntry, ...courseEntry.modules.filter((m: any) => m.slug !== data.slug)];
+        courseEntry.modules = [moduleEntry, ...courseEntry.modules.filter((m: { slug: string }) => m.slug !== data.slug)];
         localStorage.setItem('courses-manifest', JSON.stringify(manifest));
         
         // Navigate to the new redeployed note

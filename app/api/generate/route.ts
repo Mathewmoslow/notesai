@@ -3,17 +3,6 @@ import OpenAI from 'openai';
 import { marked } from 'marked';
 import dayjs from 'dayjs';
 
-interface CourseInstructor {
-  [key: string]: string;
-}
-
-const courseInstructors: CourseInstructor = {
-  NURS310: 'S. Dumas; A. Hernandez',
-  NURS320: 'S. Dumas; A. Hernandez',
-  NURS335: 'A. Hernandez; G. Rivera',
-  NURS330: 'C. Moran; T. Forbes',
-  NURS315: 'A. Layson'
-};
 
 function slugify(s: string): string {
   return s.toLowerCase()
@@ -34,7 +23,7 @@ function escapeHtml(s: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, course, module, source } = await req.json();
+    const { title, course, module, instructors, source } = await req.json();
     
     // Validate required fields
     if (!title || !course || !source) {
@@ -95,12 +84,8 @@ the following (adapt order and selection as
 appropriate to the material; they are guidelines, 
 not strict requirements):
 
-- Title & Source Snapshot (include instructor(s) by 
-  topic: Adult Health – Professors S. Dumas and A. 
-  Hernandez; NCLEX Immersion – Professors A. Hernandez 
-  and G. Rivera; Pediatrics – Professors C. Moran and 
-  T. Forbes; Gerontology – Professor A. Layson. Insert 
-  current calendar date as prompt date)
+- Title & Source Snapshot (include instructor(s) if 
+  provided. Insert current calendar date as prompt date)
 - Key Takeaways
 - Main Concepts / Frameworks (include etiology and 
   pathophysiology where relevant)
@@ -147,8 +132,7 @@ primary learning resource.
 
 [Generator context]  
 Prompt Date: ${dayjs().format('MMMM D, YYYY')}  
-Course: ${course}  
-Instructors: ${courseInstructors[course] || ''}`;
+Course: ${course}${instructors ? `  \nInstructors: ${instructors}` : ''}`;
 
     // Call OpenAI
     const openai = new OpenAI({ 
@@ -234,7 +218,7 @@ Instructors: ${courseInstructors[course] || ''}`;
   <div class="header-content">
     <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">
       <strong>Course:</strong> ${escapeHtml(course)} • 
-      <strong>Instructors:</strong> ${escapeHtml(courseInstructors[course] || '')} • 
+      ${instructors ? `<strong>Instructors:</strong> ${escapeHtml(instructors)} • ` : ''}
       <strong>Date:</strong> ${escapeHtml(dateStr)}
     </div>
     <h1>${escapeHtml(title)}</h1>

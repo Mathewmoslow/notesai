@@ -41,15 +41,14 @@ import GoogleDriveBackup from '@/components/GoogleDriveBackup';
 interface Course {
   id: string;
   name: string;
-  instructors: string;
 }
 
 const courses: Course[] = [
-  { id: 'NURS310', name: 'Adult Health I', instructors: 'G. Hagerstrom; S. Dumas' },
-  { id: 'NURS320', name: 'Adult Health II', instructors: 'G. Hagerstrom; S. Dumas' },
-  { id: 'NURS335', name: 'NCLEX Immersion I', instructors: 'A. Hernandez; G. Rivera' },
-  { id: 'NURS330', name: 'Childbearing Family/OBGYN', instructors: 'S. Abdo; M. Douglas' },
-  { id: 'NURS315', name: 'Gerontological Nursing', instructors: 'A. Layson' },
+  { id: 'NURS310', name: 'Adult Health I' },
+  { id: 'NURS320', name: 'Adult Health II' },
+  { id: 'NURS335', name: 'NCLEX Immersion I' },
+  { id: 'NURS330', name: 'Childbearing Family/OBGYN' },
+  { id: 'NURS315', name: 'Gerontological Nursing' },
 ];
 
 interface TabPanelProps {
@@ -107,6 +106,7 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [course, setCourse] = useState('NURS320');
   const [module, setModule] = useState('');
+  const [instructors, setInstructors] = useState('');
   const [source, setSource] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -141,6 +141,7 @@ export default function Home() {
           title,
           course,
           module,
+          instructors,
           source,
         }),
       });
@@ -360,6 +361,15 @@ export default function Home() {
                     placeholder="e.g., Module 2"
                     disabled={loading}
                   />
+                  <TextField
+                    id="instructors-input"
+                    sx={{ flex: '1 1 300px' }}
+                    label="Instructors (Optional)"
+                    value={instructors}
+                    onChange={(e) => setInstructors(e.target.value)}
+                    placeholder="e.g., Dr. Smith, Prof. Johnson"
+                    disabled={loading}
+                  />
                   <Box sx={{ flex: '1 1 300px', display: 'flex', gap: 2 }}>
                     <Button
                       variant="outlined"
@@ -483,7 +493,7 @@ export default function Home() {
                         {course.name}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Course ID: {course.id} • Instructors: {course.instructors}
+                        Course ID: {course.id}
                       </Typography>
                     </Box>
                     <Button variant="contained" endIcon={<TextbookIcon />}>

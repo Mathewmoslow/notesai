@@ -3,17 +3,6 @@ import OpenAI from 'openai';
 import { marked } from 'marked';
 import dayjs from 'dayjs';
 
-interface CourseInstructor {
-  [key: string]: string;
-}
-
-const courseInstructors: CourseInstructor = {
-  NURS310: 'G. Hagerstrom; S. Dumas',
-  NURS320: 'G. Hagerstrom; S. Dumas',
-  NURS335: 'A. Hernandez; G. Rivera',
-  NURS330: 'S. Abdo; M. Douglas',
-  NURS315: 'A. Layson'
-};
 
 function slugify(s: string): string {
   return s.toLowerCase()
@@ -38,7 +27,7 @@ const CURRENT_SYSTEM_PROMPT = `You are NurseNotes-AI, a study-note generator des
 First, you draft a custom outline that reflects the logical structure and natural flow of the content. You then write the notes themselves, using that outline as a guide. Your formatting combines paragraph explanations with bulleted summaries—paragraphs take precedence for clarity, while bullets support concise idea capture.
 
 Your output includes these adaptable sections:
-- Title & Source Snapshot (include instructor(s) by topic: Adult Health – Professors G. Hagerstrom and S. Dumas; NCLEX Immersion – Professors A. Hernandez and G. Rivera; Childbearing Family/OBGYN – Professors S. Abdo and M. Douglas; Gerontology – Professor A. Layson. Insert current calendar date as prompt date)
+- Title & Source Snapshot (include instructor(s) if provided. Insert current calendar date as prompt date)
 - Key Takeaways
 - Main Concepts / Frameworks
 - Applications & Mini-Cases (using SBAR/SOAP or NGN snippets)
@@ -63,7 +52,7 @@ const PROMPT_VERSIONS: { [key: string]: string } = {
 First, you draft a custom outline that reflects the logical structure and natural flow of the content. You then write the notes themselves, using that outline as a guide. Your formatting combines paragraph explanations with bulleted summaries—paragraphs take precedence for clarity, while bullets support concise idea capture.
 
 Your output includes these adaptable sections:
-- Title & Source Snapshot (include instructor(s) by topic: Adult Health – Professors G. Hagerstrom and S. Dumas; NCLEX Immersion – Professors A. Hernandez and G. Rivera; Childbearing Family/OBGYN – Professors S. Abdo and M. Douglas; Gerontology – Professor A. Layson. Insert current calendar date as prompt date)
+- Title & Source Snapshot (include instructor(s) if provided. Insert current calendar date as prompt date)
 - Key Takeaways
 - Main Concepts / Frameworks
 - Applications & Mini-Cases (using SBAR/SOAP or NGN snippets)
@@ -194,8 +183,8 @@ export async function redeployWithData(req: NextRequest) {
 
 [Generator context]
 Prompt Date: ${dayjs().format('MMMM D, YYYY')}
-Course: ${originalInput.course}
-Instructors: ${courseInstructors[originalInput.course] || ''}
+Course: ${originalInput.course}${originalInput.instructors ? `
+Instructors: ${originalInput.instructors}` : ''}
 Redeploy Mode: ${redeployMode}
 Original Generation Date: ${originalInput.generatedAt || 'Unknown'}`;
 
@@ -292,7 +281,7 @@ Original Generation Date: ${originalInput.generatedAt || 'Unknown'}`;
   <div class="header-content">
     <div style="color: var(--text-secondary); margin-bottom: 0.5rem;">
       <strong>Course:</strong> ${escapeHtml(originalInput.course)} • 
-      <strong>Instructors:</strong> ${escapeHtml(courseInstructors[originalInput.course] || '')} • 
+      ${originalInput.instructors ? `<strong>Instructors:</strong> ${escapeHtml(originalInput.instructors)} • ` : ''} 
       <strong>Date:</strong> ${escapeHtml(dateStr)}
       <span class="redeploy-badge">Redeployed (${redeployMode})</span>
     </div>
