@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { DocumentParser } from '@/utils/documentParser';
 import {
   Container,
   Paper,
@@ -228,17 +229,31 @@ export default function Home() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.txt') && !file.name.endsWith('.md')) {
-      setError('Please upload a .txt or .md file');
+    // Check if file format is supported
+    if (!DocumentParser.isSupported(file.name)) {
+      const supportedFormats = DocumentParser.getSupportedFormats();
+      setError(`Unsupported file format. Supported formats: ${supportedFormats.slice(0, 10).join(', ')}...`);
       return;
     }
 
+    setLoading(true);
+    setError('');
+
     try {
-      const text = await file.text();
-      setSource(text);
-      setSuccess(`File "${file.name}" loaded successfully`);
-    } catch {
-      setError('Failed to read file');
+      const parsed = await DocumentParser.parseFile(file);
+      const formattedContent = DocumentParser.formatForDisplay(parsed);
+      setSource(formattedContent);
+      setSuccess(`File "${file.name}" loaded successfully (${parsed.metadata?.format || 'Unknown format'})`);
+      
+      // Auto-fill title if empty and metadata has title
+      if (!title && parsed.metadata?.title) {
+        setTitle(parsed.metadata.title);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to read file: ${errorMessage}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -318,6 +333,10 @@ export default function Home() {
             <Typography variant="body1" color="text.secondary" paragraph>
               Transform your nursing course materials into comprehensive, exam-ready study notes.
             </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              Supported formats: Word (.doc, .docx), Excel (.xls, .xlsx), PowerPoint (.ppt, .pptx), 
+              PDF, HTML, Text files, Markdown, CSV, and various code formats.
+            </Typography>
 
             <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }} suppressHydrationWarning>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -382,7 +401,7 @@ export default function Home() {
                       <input
                         type="file"
                         hidden
-                        accept=".txt,.md"
+                        accept=".doc,.docx,.xls,.xlsx,.xlsm,.ppt,.pptx,.pdf,.txt,.md,.html,.htm,.css,.js,.jsx,.ts,.tsx,.json,.csv,.tsv,.xml,.yaml,.yml,.py,.java,.c,.cpp,.h,.hpp,.cs,.php,.rb,.go,.rs,.swift,.kt,.scala,.r,.m,.sql,.sh,.bash,.ps1,.bat"
                         onChange={handleFileUpload}
                       />
                     </Button>
