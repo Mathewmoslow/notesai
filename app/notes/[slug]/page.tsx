@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { 
   Container, 
   Paper, 
@@ -56,7 +57,7 @@ interface NoteData {
   };
 }
 
-export default function NotePage() {
+function NotePageContent() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
@@ -74,9 +75,10 @@ export default function NotePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Load note from localStorage
-    const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
-    const note = storedNotes[slug];
+    try {
+      // Load note from localStorage
+      const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+      const note = storedNotes[slug];
     
     if (note) {
       setNoteData(note);
@@ -105,6 +107,16 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
         <div style="padding: 40px; text-align: center;">
           <h1>Note Not Found</h1>
           <p>The requested note could not be found. Please generate it first.</p>
+        </div>
+      `);
+    }
+    } catch (error) {
+      console.error('Error loading note:', error);
+      setNoteHtml(`
+        <div style="padding: 40px; text-align: center;">
+          <h1>Error Loading Note</h1>
+          <p>Failed to load the note data. The content may be corrupted.</p>
+          <p>Please try going back and regenerating this note.</p>
         </div>
       `);
     }
@@ -561,5 +573,13 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
         </Alert>
       </Snackbar>
     </>
+  );
+}
+
+export default function NotePage() {
+  return (
+    <ErrorBoundary>
+      <NotePageContent />
+    </ErrorBoundary>
   );
 }
