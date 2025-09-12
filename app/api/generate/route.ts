@@ -71,19 +71,20 @@ export async function POST(req: NextRequest) {
       keyTerms: '## Key Terms & Definitions\nDefine important vocabulary and concepts',
       mnemonics: '## Memory Aids & Mnemonics\nProvide memory devices and learning tricks',
       conceptMap: `## Concept Maps
-For disease processes or complex topics, create comprehensive concept maps.
+For ALL major concepts, frameworks, and topics in the source material, create comprehensive concept maps.
 
 CRITICALLY IMPORTANT: 
-- If the content covers MULTIPLE diseases/conditions (e.g., Croup, RSV, Cystic Fibrosis, Asthma, etc.), you MUST create a SEPARATE concept map for EACH condition.
-- Each disease/condition should have its own complete concept map with all relevant information specific to that condition.
-- Title each concept map with the specific condition name (e.g., "### Concept Map: Croup", "### Concept Map: RSV", etc.)
+- Create concept maps for ANY overarching concept, not just diseases (e.g., Pain Management, Growth & Development, Medication Administration, Patient Safety, etc.)
+- If covering multiple diseases/conditions, create a SEPARATE map for EACH
+- If covering nursing concepts or procedures, create maps for those as well
+- Title each concept map clearly (e.g., "### Concept Map: Pediatric Pain Assessment", "### Concept Map: Respiratory Distress", "### Concept Map: Medication Safety")
 
 Generate each concept map as a JSON code block with this exact structure:
 
-### Concept Map: [Specific Condition Name]
+### Concept Map: [Specific Concept/Condition Name]
 \`\`\`json
 {
-  "central": "Specific disease/condition name (e.g., 'Croup' or 'RSV' or 'Cystic Fibrosis')",
+  "central": "Main concept name (e.g., 'Pediatric Pain Management', 'Croup', 'Medication Administration', 'Growth & Development')",
   "pathophysiology": [
     "Underlying disease mechanism specific to this condition",
     "Physiological changes for this condition",
@@ -137,10 +138,13 @@ Generate each concept map as a JSON code block with this exact structure:
 }
 \`\`\`
 
-Examples:
-- If covering respiratory conditions in children, create separate maps for: Croup, RSV, Bronchiolitis, Asthma, etc.
-- If covering cardiac conditions, create separate maps for: CHF, MI, Atrial Fibrillation, etc.
-- If covering infectious diseases, create separate maps for: Pneumonia, Tuberculosis, COVID-19, etc.
+Examples of concepts that warrant concept maps:
+- Disease Processes: Croup, RSV, Bronchiolitis, Asthma, Diabetes, Hypertension
+- Nursing Concepts: Pain Assessment, Medication Safety, Infection Control, Fall Prevention
+- Clinical Skills: IV Therapy, Wound Care, Oxygen Administration, NG Tube Management
+- Developmental Concepts: Growth Charts, Developmental Milestones, Immunization Schedules
+- Pharmacology: Drug Classes, Medication Administration Rights, Dosage Calculations
+- Assessment Tools: Vital Signs by Age, Pain Scales, Glasgow Coma Scale
 
 Ensure each array has 2-4 relevant items based on the source material. Be specific and clinically accurate for EACH individual condition.`,
       checkYourself: '## Check Yourself\nInclude self-assessment questions for active recall',

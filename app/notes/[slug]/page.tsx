@@ -80,7 +80,26 @@ export default function NotePage() {
     
     if (note) {
       setNoteData(note);
-      setNoteHtml(note.html);
+      // Validate HTML content
+      if (note.html && note.html.includes('<') && (note.html.includes('html') || note.html.includes('div') || note.html.includes('h'))) {
+        setNoteHtml(note.html);
+      } else {
+        // HTML seems corrupted, try to recover from markdown
+        console.error('Invalid HTML detected, content appears to be raw text');
+        setNoteHtml(`
+          <div style="padding: 40px; text-align: center;">
+            <h1>Content Error</h1>
+            <p>The note content appears to be corrupted.</p>
+            <p>Please try regenerating this note using the "Redeploy" button above.</p>
+            <details style="margin-top: 20px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+              <summary>Debug Information</summary>
+              <pre style="background: #f5f5f5; padding: 10px; overflow: auto;">
+${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
+              </pre>
+            </details>
+          </div>
+        `);
+      }
     } else {
       setNoteHtml(`
         <div style="padding: 40px; text-align: center;">
