@@ -51,6 +51,8 @@ interface Course {
   id: string;
   title: string;
   modules: Module[];
+  instructor?: string;
+  description?: string;
 }
 
 const courseInfo: { [key: string]: { title: string; instructor: string; description: string } } = {
@@ -90,15 +92,27 @@ export default function CoursePage() {
 
   const loadCourseData = () => {
     try {
+      // First check localStorage for all courses (including dynamic ones)
+      const storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
+      const dynamicCourse = storedCourses.find((c: { id: string; name: string }) => c.id === courseId);
+      
       const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
       const courseData = manifest.courses.find((c: Course) => c.id === courseId);
+      
       if (courseData) {
-        setCourse(courseData);
+        // Add instructor and description from hardcoded info if available
+        setCourse({
+          ...courseData,
+          instructor: courseInfo[courseId]?.instructor || dynamicCourse?.instructor || '',
+          description: courseInfo[courseId]?.description || dynamicCourse?.description || ''
+        });
       } else {
-        // If no data, create empty course structure
+        // Create empty course structure for new courses
         setCourse({
           id: courseId,
-          title: courseInfo[courseId]?.title || courseId,
+          title: courseInfo[courseId]?.title || dynamicCourse?.name || courseId,
+          instructor: courseInfo[courseId]?.instructor || dynamicCourse?.instructor || '',
+          description: courseInfo[courseId]?.description || dynamicCourse?.description || 'Course content will be generated based on your study materials.',
           modules: []
         });
       }
@@ -137,14 +151,17 @@ export default function CoursePage() {
   };
 
   const exportAsTextbook = async () => {
-    if (!course) return;
+    if (!course || course.modules.length === 0) {
+      alert('No modules available to export');
+      return;
+    }
     
     // Create a combined HTML document with all modules
     const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
-  <title>${courseInfo[courseId].title} - Complete Textbook</title>
+  <title>${course.title} - Complete Textbook</title>
   <style>
     body { font-family: 'Times New Roman', serif; line-height: 1.8; max-width: 800px; margin: 0 auto; padding: 40px; }
     h1 { color: #1976d2; page-break-before: always; }
@@ -161,7 +178,7 @@ export default function CoursePage() {
 </head>
 <body>
   <div class="toc">
-    <h1>${courseInfo[courseId].title}</h1>
+    <h1>${course.title}</h1>
     <h2>Table of Contents</h2>
     ${course.modules.map((m, i) => `
       <div class="toc-item">${i + 1}. ${m.title}</div>
@@ -194,8 +211,12 @@ export default function CoursePage() {
     );
   }
 
-  const info = courseInfo[courseId];
-  const progress = getProgress();
+  const info = {
+    title: course.title,
+    instructor: course.instructor || courseInfo[courseId]?.instructor || 'TBD',
+    description: course.description || courseInfo[courseId]?.description || 'Course content will be generated based on your study materials.'
+  };
+  const progress = course.modules.length > 0 ? getProgress() : 0;
   
   // Group modules by topic/module
   const groupedModules: { [key: string]: Module[] } = {};
@@ -267,7 +288,34 @@ export default function CoursePage() {
           Course Modules
         </Typography>
         
-        {Object.entries(groupedModules).map(([groupName, modules]) => (
+        {course.modules.length === 0 ? (
+          <Paper elevation={2} sx={{ p: 4, textAlign: 'center', mt: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              No Content Available Yet
+            </Typography>
+            <Typography variant="body1" color="text.secondary" paragraph>
+              This course doesn&apos;t have any generated notes yet.
+            </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              To add content to this course:
+            </Typography>
+            <Box sx={{ textAlign: 'left', maxWidth: 500, mx: 'auto', mb: 3 }}>
+              <Typography variant="body2" component="ul">
+                <li>Go back to the main page</li>
+                <li>Select this course from the dropdown</li>
+                <li>Enter your study topic and source materials</li>
+                <li>Click &quot;Generate Notes&quot; to create content</li>
+              </Typography>
+            </Box>
+            <Button 
+              variant="contained" 
+              onClick={() => router.push('/')}
+              startIcon={<HomeIcon />}
+            >
+              Go to Main Page
+            </Button>
+          </Paper>
+        ) : Object.entries(groupedModules).map(([groupName, modules]) => (
           <Accordion 
             key={groupName}
             defaultExpanded

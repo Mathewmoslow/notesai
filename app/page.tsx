@@ -61,6 +61,8 @@ import {
 interface Course {
   id: string;
   name: string;
+  instructor?: string;
+  description?: string;
 }
 
 const defaultCourses: Course[] = [
@@ -179,6 +181,8 @@ export default function Home() {
   const [openCourseDialog, setOpenCourseDialog] = useState(false);
   const [newCourseId, setNewCourseId] = useState('');
   const [newCourseName, setNewCourseName] = useState('');
+  const [newCourseInstructor, setNewCourseInstructor] = useState('');
+  const [newCourseDescription, setNewCourseDescription] = useState('');
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [courseManagementOpen, setCourseManagementOpen] = useState(false);
   const [noteStyle, setNoteStyle] = useState<string>('guided');
@@ -236,7 +240,9 @@ export default function Home() {
     
     const newCourse: Course = {
       id: newCourseId,
-      name: newCourseName
+      name: newCourseName,
+      instructor: newCourseInstructor,
+      description: newCourseDescription
     };
     
     const updatedCourses = [...courses, newCourse];
@@ -244,6 +250,8 @@ export default function Home() {
     
     setNewCourseId('');
     setNewCourseName('');
+    setNewCourseInstructor('');
+    setNewCourseDescription('');
     setOpenCourseDialog(false);
     setSuccess('Course added successfully!');
   };
@@ -264,6 +272,8 @@ export default function Home() {
     setEditingCourse(courseToEdit);
     setNewCourseId(courseToEdit.id);
     setNewCourseName(courseToEdit.name);
+    setNewCourseInstructor(courseToEdit.instructor || '');
+    setNewCourseDescription(courseToEdit.description || '');
     setOpenCourseDialog(true);
   };
 
@@ -281,7 +291,7 @@ export default function Home() {
     
     const updatedCourses = courses.map(c => 
       c.id === editingCourse.id 
-        ? { id: newCourseId, name: newCourseName }
+        ? { id: newCourseId, name: newCourseName, instructor: newCourseInstructor, description: newCourseDescription }
         : c
     );
     
@@ -295,6 +305,8 @@ export default function Home() {
     setEditingCourse(null);
     setNewCourseId('');
     setNewCourseName('');
+    setNewCourseInstructor('');
+    setNewCourseDescription('');
     setOpenCourseDialog(false);
     setSuccess('Course updated successfully!');
   };
@@ -894,6 +906,24 @@ export default function Home() {
                 placeholder="e.g., Pediatric Nursing"
                 helperText="Enter the full course name"
               />
+              <TextField
+                fullWidth
+                label="Instructor(s)"
+                value={newCourseInstructor}
+                onChange={(e) => setNewCourseInstructor(e.target.value)}
+                placeholder="e.g., Dr. Smith, Prof. Johnson"
+                helperText="Enter the instructor name(s) (optional)"
+              />
+              <TextField
+                fullWidth
+                label="Course Description"
+                value={newCourseDescription}
+                onChange={(e) => setNewCourseDescription(e.target.value)}
+                placeholder="Brief description of the course"
+                helperText="Enter a brief description (optional)"
+                multiline
+                rows={3}
+              />
             </Box>
           </DialogContent>
           <DialogActions>
@@ -902,6 +932,8 @@ export default function Home() {
               setEditingCourse(null);
               setNewCourseId('');
               setNewCourseName('');
+              setNewCourseInstructor('');
+              setNewCourseDescription('');
             }}>
               Cancel
             </Button>
@@ -964,6 +996,8 @@ export default function Home() {
                 setEditingCourse(null);
                 setNewCourseId('');
                 setNewCourseName('');
+                setNewCourseInstructor('');
+                setNewCourseDescription('');
                 setOpenCourseDialog(true);
               }}
               variant="contained"
