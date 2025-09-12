@@ -325,6 +325,7 @@ export default function Home() {
     setGeneratedPath('');
 
     try {
+      const selectedCourse = courses.find(c => c.id === course);
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -333,6 +334,7 @@ export default function Home() {
         body: JSON.stringify({
           title,
           course,
+          courseName: selectedCourse?.name || course,
           module,
           instructors,
           source,

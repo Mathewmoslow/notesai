@@ -23,7 +23,7 @@ function escapeHtml(s: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, course, module, instructors, source, sections, noteStyle } = await req.json();
+    const { title, course, courseName, module, instructors, source, sections, noteStyle } = await req.json();
     
     // Validate required fields
     if (!title || !course || !source) {
@@ -505,7 +505,7 @@ Course: ${course}${module ? `\nModule: ${module}` : ''}${instructors ? `\nInstru
       slug,
       title,
       course,
-      courseTitle: getCourseTitle(course),
+      courseTitle: courseName || getCourseTitle(course),
       module: module || '',
       date: dayjs().format('YYYY-MM-DD'),
       markdown: markdownContent,
@@ -513,6 +513,7 @@ Course: ${course}${module ? `\nModule: ${module}` : ''}${instructors ? `\nInstru
       originalInput: {
         title,
         course,
+        courseName: courseName || getCourseTitle(course),
         module: module || '',
         source,
         sections: sections || [],

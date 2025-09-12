@@ -303,7 +303,7 @@ Original Generation Date: ${originalInput.generatedAt || 'Unknown'}`;
       slug: newSlug,
       title: originalInput.title,
       course: originalInput.course,
-      courseTitle: getCourseTitle(originalInput.course),
+      courseTitle: originalInput.courseName || getCourseTitle(originalInput.course),
       module: originalInput.module || '',
       date: dayjs().format('YYYY-MM-DD'),
       markdown: markdownContent,
