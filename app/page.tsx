@@ -40,7 +40,6 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Save as SaveIcon,
-  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import GoogleDriveBackup from '@/components/GoogleDriveBackup';
 import { 
@@ -137,6 +136,7 @@ export default function Home() {
   useEffect(() => {
     loadManifest();
     loadCourses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadCourses = () => {
@@ -776,7 +776,7 @@ export default function Home() {
             </List>
             {courses.length === 0 && (
               <Alert severity="info">
-                No courses added yet. Close this dialog and use "Add New Course" to get started.
+                No courses added yet. Close this dialog and use &quot;Add New Course&quot; to get started.
               </Alert>
             )}
           </DialogContent>
