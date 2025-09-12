@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 
 interface ConceptMapData {
   central: string;
@@ -22,6 +22,17 @@ interface ConceptMapProps {
 }
 
 const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
+  // Validate data structure
+  if (!data || !data.central) {
+    return (
+      <Box sx={{ p: 3, bgcolor: 'error.light', borderRadius: 2 }}>
+        <Typography color="error">
+          Invalid concept map data: Missing required fields
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ 
       width: '100%', 
@@ -86,7 +97,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-100" y="-10" width="200" height="60">
             <div style={{ fontSize: '11px', padding: '5px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.pathophysiology.slice(0, 3).map((item, i) => (
+                {(data.pathophysiology || []).slice(0, 3).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -103,7 +114,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-80" y="-5" width="160" height="45">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.riskFactors.slice(0, 3).map((item, i) => (
+                {(data.riskFactors || []).slice(0, 3).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -120,7 +131,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-80" y="-5" width="160" height="45">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.causes.slice(0, 3).map((item, i) => (
+                {(data.causes || []).slice(0, 3).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -137,7 +148,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-90" y="0" width="180" height="40">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.signsSymptoms.slice(0, 2).map((item, i) => (
+                {(data.signsSymptoms || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -154,7 +165,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-60" y="-10" width="120" height="50">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.diagnostics.slice(0, 2).map((item, i) => (
+                {(data.diagnostics || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -171,7 +182,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-50" y="-5" width="100" height="40">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.complications.slice(0, 2).map((item, i) => (
+                {(data.complications || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -192,7 +203,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-80" y="0" width="160" height="40">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.nursingInterventions.slice(0, 2).map((item, i) => (
+                {(data.nursingInterventions || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -209,7 +220,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-80" y="-5" width="160" height="40">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.medications.slice(0, 2).map((item, i) => (
+                {(data.medications || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -226,7 +237,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-70" y="5" width="140" height="30">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.treatments.slice(0, 2).map((item, i) => (
+                {(data.treatments || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -243,7 +254,7 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
           <foreignObject x="-110" y="5" width="220" height="30">
             <div style={{ fontSize: '10px', padding: '3px' }}>
               <ul style={{ margin: 0, paddingLeft: '15px' }}>
-                {data.patientEducation.slice(0, 2).map((item, i) => (
+                {(data.patientEducation || []).slice(0, 2).map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
