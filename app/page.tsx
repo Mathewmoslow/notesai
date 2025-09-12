@@ -36,15 +36,28 @@ import {
   Refresh as RefreshIcon,
   MenuBook as TextbookIcon,
   Timeline as TimelineIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import GoogleDriveBackup from '@/components/GoogleDriveBackup';
+import { 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions,
+  IconButton,
+  Stack
+} from '@mui/material';
 
 interface Course {
   id: string;
   name: string;
 }
 
-const courses: Course[] = [
+const defaultCourses: Course[] = [
   { id: 'NURS310', name: 'Adult Health I' },
   { id: 'NURS320', name: 'Adult Health II' },
   { id: 'NURS335', name: 'NCLEX Immersion I' },
@@ -105,7 +118,7 @@ interface Manifest {
 export default function Home() {
   const [tabValue, setTabValue] = useState(0);
   const [title, setTitle] = useState('');
-  const [course, setCourse] = useState('NURS320');
+  const [course, setCourse] = useState('');
   const [module, setModule] = useState('');
   const [instructors, setInstructors] = useState('');
   const [source, setSource] = useState('');
@@ -114,10 +127,118 @@ export default function Home() {
   const [success, setSuccess] = useState('');
   const [generatedPath, setGeneratedPath] = useState('');
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [openCourseDialog, setOpenCourseDialog] = useState(false);
+  const [newCourseId, setNewCourseId] = useState('');
+  const [newCourseName, setNewCourseName] = useState('');
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [courseManagementOpen, setCourseManagementOpen] = useState(false);
 
   useEffect(() => {
     loadManifest();
+    loadCourses();
   }, []);
+
+  const loadCourses = () => {
+    const savedCourses = localStorage.getItem('user-courses');
+    if (savedCourses) {
+      const parsedCourses = JSON.parse(savedCourses);
+      setCourses(parsedCourses);
+      // Set default course if not already set
+      if (!course && parsedCourses.length > 0) {
+        setCourse(parsedCourses[0].id);
+      }
+    } else {
+      // Initialize with default courses if no saved courses
+      setCourses(defaultCourses);
+      localStorage.setItem('user-courses', JSON.stringify(defaultCourses));
+      if (!course && defaultCourses.length > 0) {
+        setCourse(defaultCourses[0].id);
+      }
+    }
+  };
+
+  const saveCourses = (updatedCourses: Course[]) => {
+    setCourses(updatedCourses);
+    localStorage.setItem('user-courses', JSON.stringify(updatedCourses));
+  };
+
+  const handleAddCourse = () => {
+    if (!newCourseId || !newCourseName) {
+      setError('Please fill in both Course ID and Course Name');
+      return;
+    }
+    
+    // Check for duplicate course ID
+    if (courses.some(c => c.id === newCourseId)) {
+      setError('A course with this ID already exists');
+      return;
+    }
+    
+    const newCourse: Course = {
+      id: newCourseId,
+      name: newCourseName
+    };
+    
+    const updatedCourses = [...courses, newCourse];
+    saveCourses(updatedCourses);
+    
+    setNewCourseId('');
+    setNewCourseName('');
+    setOpenCourseDialog(false);
+    setSuccess('Course added successfully!');
+  };
+
+  const handleDeleteCourse = (courseId: string) => {
+    const updatedCourses = courses.filter(c => c.id !== courseId);
+    saveCourses(updatedCourses);
+    
+    // Reset selected course if it was deleted
+    if (course === courseId) {
+      setCourse(updatedCourses.length > 0 ? updatedCourses[0].id : '');
+    }
+    
+    setSuccess('Course deleted successfully!');
+  };
+
+  const handleEditCourse = (courseToEdit: Course) => {
+    setEditingCourse(courseToEdit);
+    setNewCourseId(courseToEdit.id);
+    setNewCourseName(courseToEdit.name);
+    setOpenCourseDialog(true);
+  };
+
+  const handleUpdateCourse = () => {
+    if (!editingCourse || !newCourseId || !newCourseName) {
+      setError('Please fill in both Course ID and Course Name');
+      return;
+    }
+    
+    // Check for duplicate course ID (if ID was changed)
+    if (newCourseId !== editingCourse.id && courses.some(c => c.id === newCourseId)) {
+      setError('A course with this ID already exists');
+      return;
+    }
+    
+    const updatedCourses = courses.map(c => 
+      c.id === editingCourse.id 
+        ? { id: newCourseId, name: newCourseName }
+        : c
+    );
+    
+    saveCourses(updatedCourses);
+    
+    // Update selected course if it was edited
+    if (course === editingCourse.id) {
+      setCourse(newCourseId);
+    }
+    
+    setEditingCourse(null);
+    setNewCourseId('');
+    setNewCourseName('');
+    setOpenCourseDialog(false);
+    setSuccess('Course updated successfully!');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,6 +487,18 @@ export default function Home() {
                           {c.id} - {c.name}
                         </MenuItem>
                       ))}
+                      <Divider />
+                      <MenuItem onClick={() => {
+                        setEditingCourse(null);
+                        setNewCourseId('');
+                        setNewCourseName('');
+                        setOpenCourseDialog(true);
+                      }}>
+                        <AddIcon sx={{ mr: 1 }} /> Add New Course
+                      </MenuItem>
+                      <MenuItem onClick={() => setCourseManagementOpen(true)}>
+                        <EditIcon sx={{ mr: 1 }} /> Manage Courses
+                      </MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
@@ -563,6 +696,109 @@ export default function Home() {
             {success}
           </Alert>
         </Snackbar>
+
+        {/* Add/Edit Course Dialog */}
+        <Dialog open={openCourseDialog} onClose={() => setOpenCourseDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {editingCourse ? 'Edit Course' : 'Add New Course'}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+              <TextField
+                fullWidth
+                label="Course ID"
+                value={newCourseId}
+                onChange={(e) => setNewCourseId(e.target.value)}
+                placeholder="e.g., NURS340"
+                helperText="Enter the course code/ID"
+              />
+              <TextField
+                fullWidth
+                label="Course Name"
+                value={newCourseName}
+                onChange={(e) => setNewCourseName(e.target.value)}
+                placeholder="e.g., Pediatric Nursing"
+                helperText="Enter the full course name"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => {
+              setOpenCourseDialog(false);
+              setEditingCourse(null);
+              setNewCourseId('');
+              setNewCourseName('');
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={editingCourse ? handleUpdateCourse : handleAddCourse} 
+              variant="contained"
+              startIcon={editingCourse ? <SaveIcon /> : <AddIcon />}
+            >
+              {editingCourse ? 'Update' : 'Add'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Course Management Dialog */}
+        <Dialog open={courseManagementOpen} onClose={() => setCourseManagementOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>
+            Manage Courses
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Edit or delete existing courses. Changes are saved automatically.
+            </Typography>
+            <List>
+              {courses.map((courseItem, index) => (
+                <React.Fragment key={courseItem.id}>
+                  <ListItem
+                    secondaryAction={
+                      <Stack direction="row" spacing={1}>
+                        <IconButton edge="end" onClick={() => handleEditCourse(courseItem)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton edge="end" onClick={() => handleDeleteCourse(courseItem.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Stack>
+                    }
+                  >
+                    <ListItemText
+                      primary={courseItem.name}
+                      secondary={`Course ID: ${courseItem.id}`}
+                    />
+                  </ListItem>
+                  {index < courses.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+            {courses.length === 0 && (
+              <Alert severity="info">
+                No courses added yet. Close this dialog and use "Add New Course" to get started.
+              </Alert>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setCourseManagementOpen(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                setCourseManagementOpen(false);
+                setEditingCourse(null);
+                setNewCourseId('');
+                setNewCourseName('');
+                setOpenCourseDialog(true);
+              }}
+              variant="contained"
+              startIcon={<AddIcon />}
+            >
+              Add New Course
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </>
   );
