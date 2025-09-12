@@ -70,67 +70,79 @@ export async function POST(req: NextRequest) {
       patientEducation: '## Patient Education\nOutline teaching points and discharge planning',
       keyTerms: '## Key Terms & Definitions\nDefine important vocabulary and concepts',
       mnemonics: '## Memory Aids & Mnemonics\nProvide memory devices and learning tricks',
-      conceptMap: `## Concept Map
-For disease processes or complex topics, create a comprehensive concept map.
+      conceptMap: `## Concept Maps
+For disease processes or complex topics, create comprehensive concept maps.
 
-IMPORTANT: Generate the concept map as a JSON code block with this exact structure:
+CRITICALLY IMPORTANT: 
+- If the content covers MULTIPLE diseases/conditions (e.g., Croup, RSV, Cystic Fibrosis, Asthma, etc.), you MUST create a SEPARATE concept map for EACH condition.
+- Each disease/condition should have its own complete concept map with all relevant information specific to that condition.
+- Title each concept map with the specific condition name (e.g., "### Concept Map: Croup", "### Concept Map: RSV", etc.)
+
+Generate each concept map as a JSON code block with this exact structure:
+
+### Concept Map: [Specific Condition Name]
 \`\`\`json
 {
-  "central": "Main disease/condition name",
+  "central": "Specific disease/condition name (e.g., 'Croup' or 'RSV' or 'Cystic Fibrosis')",
   "pathophysiology": [
-    "Underlying disease mechanism",
-    "Physiological changes",
-    "Disease progression"
+    "Underlying disease mechanism specific to this condition",
+    "Physiological changes for this condition",
+    "Disease progression pattern"
   ],
   "riskFactors": [
-    "Modifiable factor 1",
-    "Non-modifiable factor 1",
-    "Environmental factors"
+    "Risk factors specific to this condition",
+    "Age groups at risk",
+    "Environmental/seasonal factors"
   ],
   "causes": [
-    "Primary cause",
-    "Contributing factor 1",
-    "Precipitating factors"
+    "Primary causative agent (virus/bacteria/genetic)",
+    "Specific triggers",
+    "Contributing factors"
   ],
   "signsSymptoms": [
-    "Early manifestation",
-    "Cardinal sign/symptom",
-    "Late-stage findings"
+    "Characteristic presentation",
+    "Cardinal signs specific to this condition",
+    "Distinguishing features from similar conditions"
   ],
   "diagnostics": [
-    "Primary diagnostic test",
-    "Lab values with ranges",
-    "Imaging studies"
+    "Gold standard diagnostic test",
+    "Specific lab values/findings",
+    "Imaging findings characteristic of this condition"
   ],
   "complications": [
-    "Acute complication",
-    "Chronic complication",
-    "Life-threatening issue"
+    "Common complications for this condition",
+    "Severe/life-threatening complications",
+    "Long-term sequelae if applicable"
   ],
   "nursingInterventions": [
-    "Priority assessment",
-    "Key nursing action",
-    "Monitoring parameter"
+    "Priority nursing assessment for this condition",
+    "Specific monitoring parameters",
+    "Key nursing interventions"
   ],
   "medications": [
-    "First-line drug class",
-    "Specific medication + dose",
-    "Important side effect to monitor"
+    "First-line medication with dose",
+    "Alternative medications",
+    "Supportive medications"
   ],
   "treatments": [
-    "Primary medical management",
-    "Surgical intervention if applicable",
-    "Supportive care measure"
+    "Primary treatment approach",
+    "Supportive care specific to condition",
+    "Emergency interventions if applicable"
   ],
   "patientEducation": [
-    "Priority teaching point",
-    "Self-care management",
-    "When to seek help"
+    "Key teaching points for this condition",
+    "Home care instructions",
+    "When to return/seek emergency care"
   ]
 }
 \`\`\`
 
-Ensure each array has 2-4 relevant items based on the source material. Be specific and clinically accurate.`,
+Examples:
+- If covering respiratory conditions in children, create separate maps for: Croup, RSV, Bronchiolitis, Asthma, etc.
+- If covering cardiac conditions, create separate maps for: CHF, MI, Atrial Fibrillation, etc.
+- If covering infectious diseases, create separate maps for: Pneumonia, Tuberculosis, COVID-19, etc.
+
+Ensure each array has 2-4 relevant items based on the source material. Be specific and clinically accurate for EACH individual condition.`,
       checkYourself: '## Check Yourself\nInclude self-assessment questions for active recall',
       practiceQuestions: '## Practice Questions\nProvide NCLEX-style questions with rationales',
       caseStudy: '## Case Study\nPresent a detailed patient scenario with analysis',
@@ -174,11 +186,13 @@ ${styleInstructions[style] || styleInstructions.comprehensive}
 ## Special Instructions for Concept Maps
 When covering disease processes, pathophysiology, or complex nursing topics:
 - ALWAYS include a concept map section when the topic involves a disease or condition
+- CREATE A SEPARATE CONCEPT MAP FOR EACH INDIVIDUAL DISEASE/CONDITION
+- For example: If covering Croup, RSV, and Cystic Fibrosis, create THREE separate concept maps
+- Each concept map must be complete and specific to that single condition
 - Follow the provided concept map structure with interconnected elements
 - Show relationships between pathophysiology → signs/symptoms → interventions
-- Use arrows (→, ↓, ↘, ↙) to show flow and connections
-- Present information in a visual hierarchy even in text format
-- Connect all elements back to nursing care and patient outcomes
+- Label each concept map clearly with the condition name
+- Connect all elements back to nursing care and patient outcomes specific to that condition
 
 ## Suggested Sections to Include (if relevant to the content):
 ${includedSections}
