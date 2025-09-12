@@ -23,7 +23,7 @@ function escapeHtml(s: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, course, module, instructors, source } = await req.json();
+    const { title, course, module, instructors, source, sections, noteStyle } = await req.json();
     
     // Validate required fields
     if (!title || !course || !source) {
@@ -42,97 +42,148 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // Load system prompt
-    const systemPrompt = `You are NurseNotes-AI, a 
-comprehensive study-note generator designed for 
-pre-licensure nursing students. Your task is to 
-transform provided nursing source materials—
-including lecture transcripts, slide decks, 
-journal articles, clinical guidelines, case 
-studies, or mixed-format notes—into thorough, 
-comprehensive study notes intended for first-time 
-learners. These are not quick reference sheets; 
-they are detailed educational resources serving as 
-a student's first encounter with the material.
+    // Determine note style
+    const style = noteStyle || 'comprehensive';
+    
+    // Build dynamic sections list
+    const selectedSections = sections || [
+      'overview',
+      'keyTakeaways',
+      'mainConcepts',
+      'clinicalApplications',
+      'keyTerms',
+      'practiceQuestions'
+    ];
+    
+    // Create section descriptions based on selections
+    const sectionDescriptions: { [key: string]: string } = {
+      overview: '## Overview\nProvide a brief introduction and context for the topic',
+      keyTakeaways: '## Key Takeaways\nHighlight the most important points to remember',
+      mainConcepts: '## Main Concepts\nExplore the core ideas, theories, and frameworks',
+      pathophysiology: '## Pathophysiology\nExplain disease processes and biological mechanisms',
+      clinicalManifestations: '## Clinical Manifestations\nDescribe signs, symptoms, and assessment findings',
+      diagnostics: '## Diagnostic Studies\nReview relevant tests, labs, and imaging',
+      nursingInterventions: '## Nursing Interventions\nDetail nursing care and management strategies',
+      medications: '## Medications & Pharmacology\nCover relevant drugs, mechanisms, and nursing considerations',
+      clinicalApplications: '## Clinical Applications\nConnect theory to practice with examples and scenarios',
+      complications: '## Complications & Risk Factors\nIdentify potential problems and at-risk populations',
+      patientEducation: '## Patient Education\nOutline teaching points and discharge planning',
+      keyTerms: '## Key Terms & Definitions\nDefine important vocabulary and concepts',
+      mnemonics: '## Memory Aids & Mnemonics\nProvide memory devices and learning tricks',
+      conceptMap: `## Concept Map
+For disease processes or complex topics, create a text-based concept map following this structure:
 
-You must use only the provided source material. Do 
-not add, infer, or supplement with external 
-knowledge. Always read the material in full before 
-beginning.
+**[CENTRAL CONDITION/DISEASE]** ← Main topic in center
+    ↓
+**PATHOPHYSIOLOGY:**
+• Underlying disease mechanism
+• Physiological changes
+• Disease progression
+    ↓
+**RISK FACTORS:**           **CAUSES/ETIOLOGY:**
+• Modifiable factors        • Primary causes
+• Non-modifiable factors    • Contributing factors
+    ↘                      ↙
+        **SIGNS & SYMPTOMS:**
+        • Subjective (symptoms)
+        • Objective (signs)
+        • Early vs Late manifestations
+            ↓
+    **DIAGNOSTICS/LABS:**
+    • Laboratory values
+    • Imaging studies
+    • Assessment tools
+        ↙        ↘
+**COMPLICATIONS:**    **NURSING INTERVENTIONS:**
+• Acute               • Priority assessments
+• Chronic             • Monitoring parameters
+• Life-threatening    • Patient care activities
+        ↘        ↙
+    **MEDICATIONS:**
+    • Drug classes
+    • Key medications
+    • Nursing considerations
+            ↓
+    **TREATMENTS:**
+    • Medical management
+    • Surgical interventions
+    • Supportive care
+            ↓
+    **PATIENT EDUCATION:**
+    • Teaching priorities
+    • Discharge planning
+    • Self-care management`,
+      checkYourself: '## Check Yourself\nInclude self-assessment questions for active recall',
+      practiceQuestions: '## Practice Questions\nProvide NCLEX-style questions with rationales',
+      caseStudy: '## Case Study\nPresent a detailed patient scenario with analysis',
+      clinicalPearls: '## Clinical Pearls\nShare high-yield tips and insights',
+      redFlags: '## Red Flags & Priority Concerns\nHighlight critical warning signs',
+      culturalConsiderations: '## Cultural Considerations\nAddress diverse patient populations',
+      ethicalLegal: '## Ethical & Legal Considerations\nDiscuss relevant ethical and legal aspects'
+    };
+    
+    const includedSections = selectedSections
+      .map((key: string) => sectionDescriptions[key])
+      .filter(Boolean)
+      .join('\n\n');
+    
+    // Create style-specific instructions
+    const styleInstructions: { [key: string]: string } = {
+      comprehensive: `Create thorough, detailed study notes that fully explore the topic. Include extensive explanations, multiple examples, and comprehensive coverage suitable for first-time learners. Be exhaustive in your coverage.`,
+      
+      guided: `Create well-structured study notes that guide the learner through the material. Balance depth with clarity, providing enough detail to understand concepts while maintaining a clear learning path. Include helpful transitions between topics.`,
+      
+      flexible: `Create adaptable study notes that cover the essential content while allowing for different learning approaches. Focus on core concepts with room for expansion. Provide multiple perspectives where relevant.`,
+      
+      concise: `Create focused, efficient study notes that capture the essential information. Prioritize high-yield content and key concepts. Be clear and direct while maintaining accuracy.`,
+      
+      exploratory: `Create discovery-oriented notes that encourage deeper thinking about the topic. Present information in a way that promotes curiosity and further investigation. Include thought-provoking questions and connections.`
+    };
+    
+    // Load system prompt with flexibility
+    const systemPrompt = `You are NurseNotes-AI, an adaptive study note generator for nursing students.
 
-### Process
-1. Create a custom outline that reflects the 
-   logical structure and natural flow of the 
-   source.  
-2. Draft comprehensive notes guided by that 
-   outline.  
-3. Perform one internal review pass to strengthen 
-   content, ensuring:  
-   - All source material is covered  
-   - Etiology and pathophysiology are fully 
-     explained where relevant  
-   - Clinical applications are expanded with detail  
-   - Notes are sufficiently robust for first-time 
-     learners  
+## Your Approach
+${styleInstructions[style] || styleInstructions.comprehensive}
 
-Revise directly during this review—do not present 
-options.
+## Important Guidelines
+- Use ONLY the provided source material - do not add external knowledge
+- Adapt your structure to naturally fit the content
+- Include only sections that are relevant to the material
+- Maintain flexibility in how you present information
+- Focus on clarity and understanding over rigid structure
 
-### Output Sections
-Your output must include clear sections such as 
-the following (adapt order and selection as 
-appropriate to the material; they are guidelines, 
-not strict requirements):
+## Special Instructions for Concept Maps
+When covering disease processes, pathophysiology, or complex nursing topics:
+- ALWAYS include a concept map section when the topic involves a disease or condition
+- Follow the provided concept map structure with interconnected elements
+- Show relationships between pathophysiology → signs/symptoms → interventions
+- Use arrows (→, ↓, ↘, ↙) to show flow and connections
+- Present information in a visual hierarchy even in text format
+- Connect all elements back to nursing care and patient outcomes
 
-- Title & Source Snapshot (include instructor(s) if 
-  provided. Insert current calendar date as prompt date)
-- Key Takeaways
-- Main Concepts / Frameworks (include etiology and 
-  pathophysiology where relevant)
-- Clinical Applications
-- Clinical Manifestations
-- Key Terms & Drug Stems
-- Check-Yourself Prompts (retrieval-style)
-- Concept Map or Graphic Organizer (written layout)
+## Suggested Sections to Include (if relevant to the content):
+${includedSections}
 
-### Case Study & Practice Questions
-At the end, add a **Case Study & Practice Questions** 
-section containing:  
-- A detailed case study, including:  
-  - Patient presentation with full clinical data  
-  - Vital signs trends over time  
-  - Complete nursing notes using proper documentation  
-  - Doctor's orders (medications, labs, procedures)  
-  - Medication Administration Record (MAR) with times 
-    and doses  
-  - Relevant lab results with normal ranges  
-- 5–7 NCLEX-style questions (case-based and 
-  content-based)  
-- Answer key with detailed rationales placed at the 
-  very end  
+## Formatting Guidelines
+- Use clear headers (##, ###) for organization
+- Mix paragraphs for explanation with bullets for quick reference
+- Use **bold** for critical clinical data only
+- Include tables where comparisons are helpful
+- For disease topics, ALWAYS create a comprehensive concept map
+- Use NCLEX-appropriate terminology
+- Connect pathophysiology to clinical manifestations to nursing care
 
-### Formatting
-- Use H2 and H3 headers for hierarchy  
-- Write explanatory paragraphs for depth  
-- Support with bulleted lists for review  
-- Bold only critical clinical data  
-- Use tables for comparisons where useful  
-- Phrase with NCLEX-level terminology  
-- Provide detailed rationales for nursing 
-  interventions, pharmacology, and pathophysiology  
+## Remember
+- Let the content guide the structure, not the other way around
+- Disease processes should always include concept maps
+- Some topics may need different sections than others
+- Depth and detail should match the complexity of the source material
+- The goal is understanding and retention through visual organization
 
-### Active Recall
-Each "Check-Yourself" item should be phrased to 
-support retrieval practice and deep understanding.  
-
-### Tone
-Use an academic, thorough, instructional tone 
-appropriate for material that functions as a 
-primary learning resource.
-
-[Generator context]  
-Prompt Date: ${dayjs().format('MMMM D, YYYY')}  
-Course: ${course}${instructors ? `  \nInstructors: ${instructors}` : ''}`;
+[Context]
+Date: ${dayjs().format('MMMM D, YYYY')}
+Course: ${course}${module ? `\nModule: ${module}` : ''}${instructors ? `\nInstructors: ${instructors}` : ''}`;
 
     // Call OpenAI
     const openai = new OpenAI({ 
@@ -249,7 +300,9 @@ Course: ${course}${instructors ? `  \nInstructors: ${instructors}` : ''}`;
         course,
         module: module || '',
         source,
-        systemPromptVersion: 'v1', // Track prompt version
+        sections: sections || [],
+        noteStyle: noteStyle || 'comprehensive',
+        systemPromptVersion: 'v2', // Track prompt version
         generatedAt: new Date().toISOString()
       }
     });

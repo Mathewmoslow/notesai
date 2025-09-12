@@ -26,6 +26,11 @@ import {
   ListItemButton,
   Chip,
   Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -40,6 +45,8 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   Save as SaveIcon,
+  ExpandMore as ExpandMoreIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import GoogleDriveBackup from '@/components/GoogleDriveBackup';
 import { 
@@ -114,6 +121,48 @@ interface Manifest {
   courses: CourseEntry[];
 }
 
+interface SectionOption {
+  id: string;
+  label: string;
+  description: string;
+  category: string;
+}
+
+const sectionOptions: SectionOption[] = [
+  // Core Sections
+  { id: 'overview', label: 'Overview', description: 'Brief introduction and context', category: 'Core' },
+  { id: 'keyTakeaways', label: 'Key Takeaways', description: 'Most important points to remember', category: 'Core' },
+  { id: 'mainConcepts', label: 'Main Concepts', description: 'Core ideas and frameworks', category: 'Core' },
+  
+  // Clinical Sections
+  { id: 'pathophysiology', label: 'Pathophysiology', description: 'Disease processes and mechanisms', category: 'Clinical' },
+  { id: 'clinicalManifestations', label: 'Clinical Manifestations', description: 'Signs, symptoms, and assessments', category: 'Clinical' },
+  { id: 'diagnostics', label: 'Diagnostic Studies', description: 'Tests, labs, and imaging', category: 'Clinical' },
+  { id: 'nursingInterventions', label: 'Nursing Interventions', description: 'Care and management strategies', category: 'Clinical' },
+  { id: 'medications', label: 'Medications', description: 'Drugs and pharmacology', category: 'Clinical' },
+  { id: 'clinicalApplications', label: 'Clinical Applications', description: 'Theory to practice examples', category: 'Clinical' },
+  { id: 'complications', label: 'Complications', description: 'Potential problems and risks', category: 'Clinical' },
+  
+  // Patient Care
+  { id: 'patientEducation', label: 'Patient Education', description: 'Teaching and discharge planning', category: 'Patient Care' },
+  { id: 'culturalConsiderations', label: 'Cultural Considerations', description: 'Diverse patient populations', category: 'Patient Care' },
+  { id: 'ethicalLegal', label: 'Ethical & Legal', description: 'Ethics and legal aspects', category: 'Patient Care' },
+  
+  // Study Aids
+  { id: 'keyTerms', label: 'Key Terms', description: 'Important vocabulary', category: 'Study Aids' },
+  { id: 'mnemonics', label: 'Memory Aids', description: 'Mnemonics and tricks', category: 'Study Aids' },
+  { id: 'conceptMap', label: 'Concept Map (Disease Processes)', description: 'Visual organization for diseases/conditions', category: 'Study Aids' },
+  { id: 'checkYourself', label: 'Check Yourself', description: 'Self-assessment questions', category: 'Study Aids' },
+  
+  // Practice
+  { id: 'practiceQuestions', label: 'Practice Questions', description: 'NCLEX-style questions', category: 'Practice' },
+  { id: 'caseStudy', label: 'Case Study', description: 'Detailed patient scenario', category: 'Practice' },
+  
+  // Additional
+  { id: 'clinicalPearls', label: 'Clinical Pearls', description: 'High-yield tips', category: 'Additional' },
+  { id: 'redFlags', label: 'Red Flags', description: 'Critical warning signs', category: 'Additional' },
+];
+
 export default function Home() {
   const [tabValue, setTabValue] = useState(0);
   const [title, setTitle] = useState('');
@@ -132,6 +181,16 @@ export default function Home() {
   const [newCourseName, setNewCourseName] = useState('');
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [courseManagementOpen, setCourseManagementOpen] = useState(false);
+  const [noteStyle, setNoteStyle] = useState<string>('guided');
+  const [selectedSections, setSelectedSections] = useState<string[]>([
+    'overview',
+    'keyTakeaways',
+    'mainConcepts',
+    'clinicalApplications',
+    'conceptMap',
+    'keyTerms',
+    'practiceQuestions'
+  ]);
 
   useEffect(() => {
     loadManifest();
@@ -265,6 +324,8 @@ export default function Home() {
           module,
           instructors,
           source,
+          sections: selectedSections,
+          noteStyle,
         }),
       });
 
@@ -563,6 +624,119 @@ export default function Home() {
                   disabled={loading}
                   sx={{ fontFamily: 'monospace' }}
                 />
+
+                {/* Note Style Selection */}
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <SettingsIcon fontSize="small" />
+                      Customize Note Generation
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {/* Note Style */}
+                      <Box>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Note Style
+                        </Typography>
+                        <ToggleButtonGroup
+                          value={noteStyle}
+                          exclusive
+                          onChange={(e, newStyle) => newStyle && setNoteStyle(newStyle)}
+                          aria-label="note style"
+                          fullWidth
+                        >
+                          <ToggleButton value="comprehensive" aria-label="comprehensive">
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2">Comprehensive</Typography>
+                              <Typography variant="caption" display="block">Detailed & thorough</Typography>
+                            </Box>
+                          </ToggleButton>
+                          <ToggleButton value="guided" aria-label="guided">
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2">Guided</Typography>
+                              <Typography variant="caption" display="block">Structured learning path</Typography>
+                            </Box>
+                          </ToggleButton>
+                          <ToggleButton value="flexible" aria-label="flexible">
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2">Flexible</Typography>
+                              <Typography variant="caption" display="block">Adaptable coverage</Typography>
+                            </Box>
+                          </ToggleButton>
+                          <ToggleButton value="concise" aria-label="concise">
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2">Concise</Typography>
+                              <Typography variant="caption" display="block">Essential points only</Typography>
+                            </Box>
+                          </ToggleButton>
+                          <ToggleButton value="exploratory" aria-label="exploratory">
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2">Exploratory</Typography>
+                              <Typography variant="caption" display="block">Discovery-oriented</Typography>
+                            </Box>
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                      </Box>
+
+                      {/* Section Selection */}
+                      <Box>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Include Sections (AI will include relevant ones based on your content)
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                          <Button
+                            size="small"
+                            onClick={() => setSelectedSections(sectionOptions.map(s => s.id))}
+                          >
+                            Select All
+                          </Button>
+                          <Button
+                            size="small"
+                            onClick={() => setSelectedSections([])}
+                          >
+                            Clear All
+                          </Button>
+                          <Button
+                            size="small"
+                            onClick={() => setSelectedSections(['overview', 'keyTakeaways', 'mainConcepts', 'clinicalApplications', 'conceptMap', 'keyTerms', 'practiceQuestions'])}
+                          >
+                            Reset to Default
+                          </Button>
+                        </Box>
+                        
+                        {['Core', 'Clinical', 'Patient Care', 'Study Aids', 'Practice', 'Additional'].map(category => (
+                          <Box key={category} sx={{ mb: 2 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                              {category}
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                              {sectionOptions
+                                .filter(section => section.category === category)
+                                .map(section => (
+                                  <Chip
+                                    key={section.id}
+                                    label={section.label}
+                                    onClick={() => {
+                                      setSelectedSections(prev =>
+                                        prev.includes(section.id)
+                                          ? prev.filter(id => id !== section.id)
+                                          : [...prev, section.id]
+                                      );
+                                    }}
+                                    color={selectedSections.includes(section.id) ? 'primary' : 'default'}
+                                    variant={selectedSections.includes(section.id) ? 'filled' : 'outlined'}
+                                    size="small"
+                                  />
+                                ))}
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
 
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                   <Button
