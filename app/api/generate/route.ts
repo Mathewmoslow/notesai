@@ -144,8 +144,128 @@ Examples:
 
 Ensure each array has 2-4 relevant items based on the source material. Be specific and clinically accurate for EACH individual condition.`,
       checkYourself: '## Check Yourself\nInclude self-assessment questions for active recall',
-      practiceQuestions: '## Practice Questions\nProvide NCLEX-style questions with rationales',
-      caseStudy: '## Case Study\nPresent a detailed patient scenario with analysis',
+      practiceQuestions: `## Practice Questions
+Generate 8-10 NCLEX-RN style questions following these requirements:
+
+### Question Types to Include:
+- 2-3 Priority/First Action questions ("Which action should the nurse take FIRST?")
+- 2-3 Assessment questions (recognizing complications, expected findings)
+- 1-2 Medication questions (calculations, side effects, teaching)
+- 1-2 Patient teaching questions
+- 1-2 Delegation/Management questions
+
+### Question Format Requirements:
+- Include complete clinical scenarios with relevant data
+- Provide vital signs, lab values, or assessment findings when applicable
+- All options must be plausible
+- Correct answer should require critical thinking, not memorization
+
+### For EACH Question Include:
+1. Clinical stem with patient data
+2. Clear question
+3. Four options (A, B, C, D)
+4. Correct answer
+5. Detailed rationale explaining:
+   - Why the correct answer is right
+   - Why EACH incorrect option is wrong
+   - The nursing principle or concept being tested
+   - Test-taking strategy that applies
+
+### Example Format:
+"A 6-month-old infant with RSV is admitted with the following vitals: T 102.2°F, HR 165, RR 68, O2 sat 89% on room air. The infant has moderate subcostal retractions and audible wheezing. Which intervention should the nurse implement FIRST?"
+
+Include select-all-that-apply (SATA) and ordered response questions where appropriate.`,
+      caseStudy: `## Case Study
+Create a comprehensive, NCLEX-style case study with the following REQUIRED elements:
+
+### Patient Presentation
+- Full demographic information (age, gender, ethnicity, occupation)
+- Chief complaint with exact quote from patient/parent
+- History of Present Illness (HPI) with timeline
+- Past Medical History (PMH)
+- Family History
+- Social History (including living situation, habits)
+- Current medications with doses
+- Allergies with reaction types
+
+### Vital Signs (Include ALL)
+Initial presentation:
+- Temperature: (specify F or C)
+- Heart Rate: (include rhythm)
+- Respiratory Rate: (include quality)
+- Blood Pressure: (include MAP if relevant)
+- O2 Saturation: (on room air or specify O2 delivery)
+- Pain: (0-10 scale with description)
+- Weight/Height: (include BMI for adults, percentiles for peds)
+
+Include vital sign trends over time (admission, 2hr, 4hr, 8hr, etc.)
+
+### Physical Assessment
+Head-to-toe assessment findings:
+- General appearance
+- HEENT
+- Cardiovascular
+- Respiratory (including lung sounds by location)
+- Gastrointestinal
+- Genitourinary
+- Musculoskeletal
+- Neurological (including GCS if relevant)
+- Skin/Integumentary
+
+### Laboratory Results
+Include actual values with normal ranges:
+- CBC with differential
+- Comprehensive metabolic panel
+- ABGs or VBG if relevant
+- Condition-specific labs
+- Culture results if applicable
+- Critical values highlighted
+
+### Diagnostic Tests
+- Imaging results with specific findings
+- EKG interpretation if relevant
+- Other specialized tests
+
+### Physician Orders
+Complete order set including:
+- Admission orders
+- Medication orders with doses, routes, frequencies
+- IV fluids (type, rate)
+- Diet orders
+- Activity orders
+- Monitoring parameters
+- Consultations
+
+### Nursing Care Plan
+- Top 3 nursing diagnoses with evidence
+- Interventions with rationales
+- Expected outcomes with timeframes
+- Evaluation criteria
+
+### Medication Administration Record (MAR)
+Show scheduled and PRN medications with:
+- Times due
+- Doses
+- Routes
+- Last dose given
+- Next dose due
+
+### Progress Notes
+Include at least 3 SBAR or DAR notes showing patient progression
+
+### Questions for Critical Thinking
+5-7 NCLEX-style questions including:
+- Priority action questions
+- Assessment questions
+- Medication calculations
+- Patient teaching priorities
+- Delegation decisions
+
+### Answer Key
+Detailed rationales for each question explaining:
+- Why the correct answer is right
+- Why each distractor is wrong
+- NCLEX test-taking strategy used`,
       clinicalPearls: '## Clinical Pearls\nShare high-yield tips and insights',
       redFlags: '## Red Flags & Priority Concerns\nHighlight critical warning signs',
       culturalConsiderations: '## Cultural Considerations\nAddress diverse patient populations',
@@ -171,7 +291,66 @@ Ensure each array has 2-4 relevant items based on the source material. Be specif
     };
     
     // Load system prompt with flexibility
-    const systemPrompt = `You are NurseNotes-AI, an adaptive study note generator for nursing students.
+    const systemPrompt = `You are NurseNotes-AI, an advanced NCLEX-focused study note generator for nursing students preparing for licensure exams.
+
+## CRITICAL REQUIREMENTS FOR NCLEX-LEVEL CONTENT
+
+### DEPTH AND DETAIL REQUIREMENTS
+- Every section MUST contain specific, detailed, clinically relevant information
+- NO generic statements or surface-level summaries
+- Include specific numbers, values, timeframes, and measurements
+- Provide NCLEX-level depth equivalent to nursing textbooks
+- Each condition must be explained as if teaching someone who has never heard of it
+
+### PATHOPHYSIOLOGY REQUIREMENTS
+For EACH disease/condition, provide:
+- Detailed cellular/tissue level changes
+- Step-by-step disease progression
+- Specific inflammatory mediators involved
+- Exact anatomical structures affected
+- Compensatory mechanisms
+- Why specific symptoms occur based on the pathophysiology
+- Age-specific variations in disease process
+
+### CLINICAL MANIFESTATIONS REQUIREMENTS
+For EACH condition, include:
+- Early vs Late signs/symptoms with timeframes
+- Specific vital sign ranges for each stage
+- Physical assessment findings by body system
+- Age-specific manifestations
+- Classic presentation vs atypical presentations
+- Red flag symptoms requiring immediate intervention
+- Progression timeline if untreated
+
+### DIAGNOSTIC REQUIREMENTS
+Always include specific values:
+- Normal ranges AND expected abnormal values
+- Critical values requiring immediate action
+- Gold standard tests with sensitivity/specificity if relevant
+- Cost-effective screening vs confirmatory tests
+- Age-specific normal values
+- Interpretation guidelines
+
+### MEDICATION REQUIREMENTS
+For EACH medication mentioned:
+- Generic and brand names
+- Exact dosing (mg/kg for pediatrics)
+- Route and frequency
+- Mechanism of action
+- Major side effects and their incidence
+- Nursing considerations
+- Contraindications
+- Drug interactions
+- Monitoring parameters
+
+### NURSING INTERVENTIONS REQUIREMENTS
+Must be specific and actionable:
+- Priority order based on ABC's and Maslow's
+- Exact monitoring frequencies (e.g., "VS q15min x 4, then q30min x 2, then q1h")
+- Specific assessment parameters
+- Evidence-based interventions with rationales
+- Expected outcomes with timeframes
+- Documentation requirements
 
 ## Your Approach
 ${styleInstructions[style] || styleInstructions.comprehensive}
@@ -180,8 +359,8 @@ ${styleInstructions[style] || styleInstructions.comprehensive}
 - Use ONLY the provided source material - do not add external knowledge
 - Adapt your structure to naturally fit the content
 - Include only sections that are relevant to the material
-- Maintain flexibility in how you present information
-- Focus on clarity and understanding over rigid structure
+- Maintain NCLEX-level depth in all sections
+- Focus on clinical application and critical thinking
 
 ## Special Instructions for Concept Maps
 When covering disease processes, pathophysiology, or complex nursing topics:
@@ -206,12 +385,16 @@ ${includedSections}
 - Use NCLEX-appropriate terminology
 - Connect pathophysiology to clinical manifestations to nursing care
 
-## Remember
-- Let the content guide the structure, not the other way around
-- Disease processes should always include concept maps
-- Some topics may need different sections than others
-- Depth and detail should match the complexity of the source material
-- The goal is understanding and retention through visual organization
+## FINAL CRITICAL REMINDERS
+- NEVER write generic, surface-level content
+- EVERY statement must be specific and clinically relevant
+- Include actual numbers, values, ranges, and timeframes
+- Each section must be detailed enough to prepare for NCLEX-RN
+- Disease processes MUST include detailed pathophysiology and multiple concept maps
+- Case studies MUST include complete patient data, vitals, labs, and progression
+- Think like you're writing a nursing textbook chapter, not a summary
+- If you find yourself writing "various," "multiple," "may include," or "such as" - STOP and be specific
+- The goal is NCLEX preparation through comprehensive, detailed understanding
 
 [Context]
 Date: ${dayjs().format('MMMM D, YYYY')}
