@@ -71,48 +71,66 @@ export async function POST(req: NextRequest) {
       keyTerms: '## Key Terms & Definitions\nDefine important vocabulary and concepts',
       mnemonics: '## Memory Aids & Mnemonics\nProvide memory devices and learning tricks',
       conceptMap: `## Concept Map
-For disease processes or complex topics, create a text-based concept map following this structure:
+For disease processes or complex topics, create a comprehensive concept map.
 
-**[CENTRAL CONDITION/DISEASE]** ← Main topic in center
-    ↓
-**PATHOPHYSIOLOGY:**
-• Underlying disease mechanism
-• Physiological changes
-• Disease progression
-    ↓
-**RISK FACTORS:**           **CAUSES/ETIOLOGY:**
-• Modifiable factors        • Primary causes
-• Non-modifiable factors    • Contributing factors
-    ↘                      ↙
-        **SIGNS & SYMPTOMS:**
-        • Subjective (symptoms)
-        • Objective (signs)
-        • Early vs Late manifestations
-            ↓
-    **DIAGNOSTICS/LABS:**
-    • Laboratory values
-    • Imaging studies
-    • Assessment tools
-        ↙        ↘
-**COMPLICATIONS:**    **NURSING INTERVENTIONS:**
-• Acute               • Priority assessments
-• Chronic             • Monitoring parameters
-• Life-threatening    • Patient care activities
-        ↘        ↙
-    **MEDICATIONS:**
-    • Drug classes
-    • Key medications
-    • Nursing considerations
-            ↓
-    **TREATMENTS:**
-    • Medical management
-    • Surgical interventions
-    • Supportive care
-            ↓
-    **PATIENT EDUCATION:**
-    • Teaching priorities
-    • Discharge planning
-    • Self-care management`,
+IMPORTANT: Generate the concept map as a JSON code block with this exact structure:
+\`\`\`json
+{
+  "central": "Main disease/condition name",
+  "pathophysiology": [
+    "Underlying disease mechanism",
+    "Physiological changes",
+    "Disease progression"
+  ],
+  "riskFactors": [
+    "Modifiable factor 1",
+    "Non-modifiable factor 1",
+    "Environmental factors"
+  ],
+  "causes": [
+    "Primary cause",
+    "Contributing factor 1",
+    "Precipitating factors"
+  ],
+  "signsSymptoms": [
+    "Early manifestation",
+    "Cardinal sign/symptom",
+    "Late-stage findings"
+  ],
+  "diagnostics": [
+    "Primary diagnostic test",
+    "Lab values with ranges",
+    "Imaging studies"
+  ],
+  "complications": [
+    "Acute complication",
+    "Chronic complication",
+    "Life-threatening issue"
+  ],
+  "nursingInterventions": [
+    "Priority assessment",
+    "Key nursing action",
+    "Monitoring parameter"
+  ],
+  "medications": [
+    "First-line drug class",
+    "Specific medication + dose",
+    "Important side effect to monitor"
+  ],
+  "treatments": [
+    "Primary medical management",
+    "Surgical intervention if applicable",
+    "Supportive care measure"
+  ],
+  "patientEducation": [
+    "Priority teaching point",
+    "Self-care management",
+    "When to seek help"
+  ]
+}
+\`\`\`
+
+Ensure each array has 2-4 relevant items based on the source material. Be specific and clinically accurate.`,
       checkYourself: '## Check Yourself\nInclude self-assessment questions for active recall',
       practiceQuestions: '## Practice Questions\nProvide NCLEX-style questions with rationales',
       caseStudy: '## Case Study\nPresent a detailed patient scenario with analysis',

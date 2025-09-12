@@ -33,6 +33,7 @@ import {
   Print as PrintIcon
 } from '@mui/icons-material';
 import RichTextEditor from '@/components/RichTextEditor';
+import NoteRenderer from '@/components/NoteRenderer';
 
 interface NoteData {
   slug: string;
@@ -428,7 +429,7 @@ export default function NotePage() {
               onPrint={handlePrint}
             />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: noteHtml }} />
+            <NoteRenderer content={noteHtml} />
           )}
         </Paper>
       </Container>
