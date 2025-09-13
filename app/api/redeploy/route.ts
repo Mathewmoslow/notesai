@@ -186,7 +186,11 @@ Prompt Date: ${dayjs().format('MMMM D, YYYY')}
 Course: ${originalInput.course}${originalInput.instructors ? `
 Instructors: ${originalInput.instructors}` : ''}
 Redeploy Mode: ${redeployMode}
-Original Generation Date: ${originalInput.generatedAt || 'Unknown'}`;
+Original Generation Date: ${originalInput.generatedAt || 'Unknown'}
+
+=== END OF SYSTEM INSTRUCTIONS ===
+Everything above this line is instructions for HOW to generate content.
+Everything you generate below should be the ACTUAL CONTENT of the study notes, not instructions about how to write them.`;
 
     // Call OpenAI with the determined prompt
     const openai = new OpenAI({ 
@@ -198,7 +202,7 @@ Original Generation Date: ${originalInput.generatedAt || 'Unknown'}`;
       model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
       messages: [
         { role: 'system', content: fullSystemPrompt },
-        { role: 'user', content: `Use ONLY the following source material. Produce the notes as described.\n\nSOURCE:\n${originalInput.source}` }
+        { role: 'user', content: `Generate comprehensive study notes based on the following source material. Create the content sections requested above, but DO NOT include the formatting guidelines, instructions, or system prompts in the output. The output should contain ONLY the actual study note content.\n\nSOURCE MATERIAL:\n${originalInput.source}\n\n---\nNOW GENERATE THE STUDY NOTES (content only, no instructions):` }
       ],
       temperature: 0.2,
     });
