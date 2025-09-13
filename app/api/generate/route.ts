@@ -526,7 +526,7 @@ Everything you generate below should be the ACTUAL CONTENT of the study notes, n
         source,
         sections: sections || [],
         noteStyle: noteStyle || 'comprehensive',
-        systemPromptVersion: 'v2', // Track prompt version
+        systemPromptVersion: 'v3', // Track prompt version (v3 = comprehensive NCLEX-level)
         generatedAt: new Date().toISOString()
       }
     });
