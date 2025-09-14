@@ -247,6 +247,9 @@ export default function CoursePage() {
       const contentWrapper = doc.querySelector('.content-wrapper');
       let content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
       
+      // Remove all internal links to prevent "Not allowed to load local resource" errors
+      content = content.replace(/<a\s+[^>]*href=['"]\/notes\/[^'"]*['"][^>]*>(.*?)<\/a>/gi, '$1');
+      
       // Process concept maps - find and replace JSON blocks with SVG
       const conceptMapRegex = /<h3[^>]*>(?:Concept Map:?\s*)([^<]+)<\/h3>[\s\S]*?<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
       content = content.replace(conceptMapRegex, (match, title, codeContent) => {

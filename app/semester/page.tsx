@@ -181,6 +181,9 @@ export default function SemesterOverview() {
         const contentWrapper = doc.querySelector('.content-wrapper');
         let content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
         
+        // Remove all internal links to prevent "Not allowed to load local resource" errors
+        content = content.replace(/<a\s+[^>]*href=['"]\/notes\/[^'"]*['"][^>]*>(.*?)<\/a>/gi, '$1');
+        
         // Process concept maps - replace JSON with SVG
         const conceptMapRegex = /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
         content = content.replace(conceptMapRegex, (match, codeContent) => {
