@@ -115,105 +115,467 @@ export default function SemesterOverview() {
     return (completed / moduleCount) * 100;
   };
 
+  // Function to render concept map as SVG HTML (simplified version)
+  const renderConceptMapAsSVG = (data: any) => {
+    if (!data || !data.central) return '';
+    
+    return `
+      <svg width="100%" height="auto" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" style="width: 100%; max-width: 100%; height: auto; display: block; margin: 15px auto; background: white; border: 1px solid #ddd; border-radius: 8px;">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#666" />
+          </marker>
+        </defs>
+        <g transform="translate(600, 400)">
+          <polygon points="0,-40 12,-12 40,-8 20,8 24,36 0,20 -24,36 -20,8 -40,-8 -12,-12" fill="#FFD700" stroke="#FFA500" stroke-width="2"/>
+          <text x="0" y="0" text-anchor="middle" font-size="12" font-weight="bold">${data.central}</text>
+        </g>
+        <g transform="translate(600, 120)">
+          <ellipse cx="0" cy="0" rx="180" ry="55" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+          <text x="0" y="-35" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">PATHOPHYSIOLOGY</text>
+        </g>
+        <g transform="translate(150, 250)">
+          <ellipse cx="0" cy="0" rx="85" ry="45" fill="#FFF3E0" stroke="#FF9800" stroke-width="2"/>
+          <text x="0" y="-25" text-anchor="middle" font-size="13" font-weight="bold" fill="#E65100">RISK FACTORS</text>
+        </g>
+        <g transform="translate(600, 560)">
+          <ellipse cx="0" cy="0" rx="130" ry="45" fill="#FCE4EC" stroke="#E91E63" stroke-width="2"/>
+          <text x="0" y="-25" text-anchor="middle" font-size="12" font-weight="bold" fill="#880E4F">MEDICATIONS</text>
+        </g>
+        <line x1="600" y1="175" x2="600" y2="360" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+      </svg>
+    `;
+  };
+  
   const exportSemesterTextbook = async () => {
     if (courses.length === 0) {
       alert('No courses available to export');
       return;
     }
-    // Create comprehensive semester textbook
+    
+    // Get all notes from localStorage
+    const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+    
+    // Build all course content
+    let totalModules = 0;
+    let totalWithContent = 0;
+    
+    const courseSections = courses.map((course, courseIndex) => {
+      const courseModules = course.modules.map((module, moduleIndex) => {
+        totalModules++;
+        const noteData = storedNotes[module.slug];
+        
+        if (!noteData || !noteData.html) {
+          return `
+            <div class="chapter">
+              <h2 class="chapter-title">Chapter ${courseIndex + 1}.${moduleIndex + 1}: ${module.title}</h2>
+              <p class="missing-content">Content not available. Please regenerate this note.</p>
+            </div>
+          `;
+        }
+        
+        totalWithContent++;
+        // Extract content from stored HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(noteData.html, 'text/html');
+        const contentWrapper = doc.querySelector('.content-wrapper');
+        let content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
+        
+        // Process concept maps - replace JSON with SVG
+        const conceptMapRegex = /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
+        content = content.replace(conceptMapRegex, (match, codeContent) => {
+          try {
+            const decodedContent = codeContent
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&quot;/g, '"')
+              .replace(/&#39;/g, "'")
+              .replace(/&amp;/g, '&');
+            
+            if (decodedContent.includes('"central"') && decodedContent.includes('"pathophysiology"')) {
+              const jsonMatch = decodedContent.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const mapData = JSON.parse(jsonMatch[0]);
+                return renderConceptMapAsSVG(mapData);
+              }
+            }
+          } catch (e) {
+            // Not a concept map
+          }
+          return match;
+        });
+        
+        return `
+          <div class="chapter">
+            <h2 class="chapter-title">Chapter ${courseIndex + 1}.${moduleIndex + 1}: ${module.title}</h2>
+            <div class="chapter-meta">${module.module ? `Module: ${module.module} | ` : ''}Date: ${module.date}</div>
+            ${content}
+          </div>
+        `;
+      }).join('');
+      
+      return `
+        <div class="course-section">
+          <h1 class="course-title">Part ${courseIndex + 1}: ${course.title}</h1>
+          ${courseModules}
+        </div>
+      `;
+    }).join('');
+    
+    // Alert if missing content
+    if (totalWithContent < totalModules) {
+      const proceed = confirm(`${totalModules - totalWithContent} of ${totalModules} modules are missing content. Do you want to continue with the export?`);
+      if (!proceed) return;
+    }
+    
+    // Create comprehensive semester textbook with embedded content
     const htmlContent = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Nursing Semester - Complete Digital Textbook</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Nursing Semester - Digital Textbook</title>
   <style>
-    body { 
-      font-family: 'Georgia', serif; 
-      line-height: 1.8; 
-      max-width: 900px; 
-      margin: 0 auto; 
-      padding: 40px;
-      color: #333;
+    /* Reset and base */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+    
+    /* Page setup for 8.5x11 inches */
+    @page {
+      size: 8.5in 11in;
+      margin: 1in;
+    }
+    
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #000;
+      background: white;
+    }
+    
+    /* Screen viewing */
+    @media screen {
+      body {
+        background: #e0e0e0;
+      }
+      .page-container {
+        width: 8.5in;
+        margin: 20px auto;
+        padding: 1in;
+        background: white;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      }
+    }
+    
+    /* Print styles */
+    @media print {
+      .page-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    }
+    
+    /* Cover page */
     .cover-page {
-      text-align: center;
       page-break-after: always;
-      padding: 100px 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 9in;
+      text-align: center;
     }
-    .cover-page h1 {
-      font-size: 3em;
+    
+    .cover-title {
+      font-size: 42pt;
+      font-weight: bold;
       color: #1976d2;
       margin-bottom: 30px;
     }
+    
+    .cover-subtitle {
+      font-size: 24pt;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    
+    .cover-meta {
+      font-size: 14pt;
+      color: #666;
+      line-height: 2;
+    }
+    
+    /* Table of contents */
     .toc {
       page-break-after: always;
     }
-    .course-section {
-      page-break-before: always;
-    }
-    .course-title {
+    
+    .toc h1 {
+      font-size: 28pt;
       color: #1976d2;
-      font-size: 2.5em;
+      margin-bottom: 30px;
       border-bottom: 3px solid #1976d2;
       padding-bottom: 10px;
     }
-    .module-section {
-      margin: 40px 0;
+    
+    .course-toc {
+      margin: 25px 0;
     }
-    @media print {
-      body { margin: 0; padding: 20px; }
+    
+    .course-toc h2 {
+      font-size: 18pt;
+      color: #115293;
+      margin-bottom: 10px;
+    }
+    
+    .course-toc ul {
+      list-style: none;
+      padding-left: 20px;
+    }
+    
+    .course-toc li {
+      font-size: 11pt;
+      margin: 5px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    
+    .course-toc li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: #1976d2;
+    }
+    
+    /* Course sections */
+    .course-section {
+      page-break-before: always;
+    }
+    
+    .course-title {
+      font-size: 28pt;
+      color: #1976d2;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #1976d2;
+      page-break-after: avoid;
+    }
+    
+    /* Chapters */
+    .chapter {
+      margin-bottom: 30px;
+    }
+    
+    .chapter-title {
+      font-size: 20pt;
+      color: #115293;
+      margin: 20px 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ddd;
+      page-break-after: avoid;
+    }
+    
+    .chapter-meta {
+      font-size: 10pt;
+      color: #666;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    
+    /* Content styles */
+    h1 { font-size: 18pt; color: #1976d2; margin: 18px 0 8px; page-break-after: avoid; }
+    h2 { font-size: 14pt; color: #115293; margin: 16px 0 6px; border-bottom: 1px solid #ddd; padding-bottom: 4px; page-break-after: avoid; }
+    h3 { font-size: 12pt; color: #333; margin: 14px 0 5px; page-break-after: avoid; }
+    h4 { font-size: 11pt; color: #555; margin: 12px 0 4px; page-break-after: avoid; }
+    
+    p {
+      margin: 10px 0;
+      text-align: justify;
+      orphans: 3;
+      widows: 3;
+    }
+    
+    ul, ol {
+      margin: 10px 0 10px 30px;
+    }
+    
+    li {
+      margin: 5px 0;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    
+    /* Code blocks */
+    pre, code {
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+      background: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    
+    pre {
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+    
+    /* Missing content notice */
+    .missing-content {
+      padding: 30px;
+      background: #fff3e0;
+      border: 2px dashed #ff9800;
+      color: #e65100;
+      text-align: center;
+      font-style: italic;
+      font-size: 12pt;
+      margin: 20px 0;
+    }
+    
+    /* Appendix */
+    .appendix {
+      page-break-before: always;
+      margin-top: 40px;
+    }
+    
+    .appendix h1 {
+      font-size: 24pt;
+      color: #1976d2;
+      margin-bottom: 20px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .stat-box {
+      padding: 15px;
+      background: #f5f5f5;
+      border-left: 4px solid #1976d2;
+    }
+    
+    .stat-label {
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    
+    .stat-value {
+      font-size: 18pt;
+      color: #1976d2;
+    }
+    
+    /* Images and SVGs */
+    img, svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 15px auto;
+      page-break-inside: avoid;
+    }
+    
+    /* Avoid breaking inside important elements */
+    .alert, blockquote {
+      page-break-inside: avoid;
     }
   </style>
 </head>
 <body>
-  <div class="cover-page">
-    <h1>Nursing Program</h1>
-    <h2>Complete Digital Textbook</h2>
-    <p>Semester Compilation</p>
-    <p>${new Date().getFullYear()}</p>
-  </div>
-  
-  <div class="toc">
-    <h1>Table of Contents</h1>
-    ${courses.map((course, i) => `
-      <div class="course-toc">
-        <h2>Part ${i + 1}: ${course.title}</h2>
-        <ul>
-          ${course.modules.map((m, j) => `
-            <li>Chapter ${i + 1}.${j + 1}: ${m.title}</li>
-          `).join('')}
-        </ul>
+  <div class="page-container">
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <h1 class="cover-title">Nursing Program</h1>
+      <p class="cover-subtitle">Complete Semester Textbook</p>
+      <div class="cover-meta">
+        <p>All Courses & Modules</p>
+        <p>${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p>Total Courses: ${courses.length}</p>
+        <p>Total Modules: ${totalModules}</p>
+        <p>Content Available: ${totalWithContent} of ${totalModules}</p>
       </div>
-    `).join('')}
-  </div>
-  
-  ${courses.map((course, i) => `
-    <div class="course-section">
-      <h1 class="course-title">Part ${i + 1}: ${course.title}</h1>
-      ${course.modules.map((m, j) => `
-        <div class="module-section">
-          <h2>Chapter ${i + 1}.${j + 1}: ${m.title}</h2>
-          <iframe src="${m.path}" style="width:100%; min-height:1000px; border:none;"></iframe>
+    </div>
+    
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h1>Table of Contents</h1>
+      ${courses.map((course, i) => `
+        <div class="course-toc">
+          <h2>Part ${i + 1}: ${course.title}</h2>
+          <ul>
+            ${course.modules.map((m, j) => `
+              <li>Chapter ${i + 1}.${j + 1}: ${m.title}</li>
+            `).join('')}
+          </ul>
         </div>
       `).join('')}
     </div>
-  `).join('')}
-  
-  <div class="appendix" style="page-break-before: always;">
-    <h1>Study Statistics</h1>
-    <p>Total Modules Completed: ${semesterStats.completedModules}</p>
-    <p>Total Study Hours: ${semesterStats.studyHours}</p>
-    <p>Completion Rate: ${Math.round((semesterStats.completedModules / semesterStats.totalModules) * 100)}%</p>
+    
+    <!-- Course Content -->
+    ${courseSections}
+    
+    <!-- Appendix with Statistics -->
+    <div class="appendix">
+      <h1>Study Progress Statistics</h1>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Modules Completed</div>
+          <div class="stat-value">${semesterStats.completedModules}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total Study Hours</div>
+          <div class="stat-value">${semesterStats.studyHours}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Completion Rate</div>
+          <div class="stat-value">${Math.round((semesterStats.completedModules / semesterStats.totalModules) * 100)}%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total Modules</div>
+          <div class="stat-value">${semesterStats.totalModules}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </body>
 </html>`;
     
-    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'nursing-semester-complete-textbook.html';
+    a.download = `semester-textbook-${new Date().toISOString().split('T')[0]}.html`;
     a.click();
+    
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const overallProgress = semesterStats.totalModules > 0 

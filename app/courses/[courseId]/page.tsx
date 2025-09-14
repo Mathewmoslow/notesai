@@ -127,6 +127,99 @@ export default function CoursePage() {
     return (completedModules.size / course.modules.length) * 100;
   };
 
+  // Function to render concept map as SVG HTML
+  const renderConceptMapAsSVG = (conceptMapData: any) => {
+    const data = conceptMapData;
+    if (!data || !data.central) return '';
+    
+    return `
+      <svg width="100%" height="auto" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" style="width: 100%; max-width: 100%; height: auto; display: block; margin: 15px auto; background: white; border: 1px solid #ddd; border-radius: 8px;">
+        <!-- Arrow markers -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <polygon points="0 0, 10 3, 0 6" fill="#666" />
+          </marker>
+        </defs>
+        
+        <!-- Central Concept -->
+        <g transform="translate(600, 400)">
+          <polygon points="0,-40 12,-12 40,-8 20,8 24,36 0,20 -24,36 -20,8 -40,-8 -12,-12" fill="#FFD700" stroke="#FFA500" stroke-width="2"/>
+          <text x="0" y="0" text-anchor="middle" font-size="12" font-weight="bold">${data.central}</text>
+        </g>
+        
+        <!-- Pathophysiology -->
+        <g transform="translate(600, 120)">
+          <ellipse cx="0" cy="0" rx="180" ry="55" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+          <text x="0" y="-35" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">PATHOPHYSIOLOGY</text>
+          ${(data.pathophysiology || []).slice(0, 4).map((item: string, i: number) => 
+            `<text x="0" y="${-10 + i * 15}" text-anchor="middle" font-size="10">${item.substring(0, 50)}${item.length > 50 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Risk Factors -->
+        <g transform="translate(150, 250)">
+          <ellipse cx="0" cy="0" rx="85" ry="45" fill="#FFF3E0" stroke="#FF9800" stroke-width="2"/>
+          <text x="0" y="-25" text-anchor="middle" font-size="13" font-weight="bold" fill="#E65100">RISK FACTORS</text>
+          ${(data.riskFactors || []).slice(0, 3).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 30)}${item.length > 30 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Causes -->
+        <g transform="translate(1050, 250)">
+          <ellipse cx="0" cy="0" rx="75" ry="40" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2"/>
+          <text x="0" y="-20" text-anchor="middle" font-size="12" font-weight="bold" fill="#6A1B9A">CAUSES</text>
+          ${(data.causes || []).slice(0, 3).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 12}" text-anchor="middle" font-size="9">${item.substring(0, 25)}${item.length > 25 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Signs & Symptoms -->
+        <g transform="translate(600, 280)">
+          <rect x="-150" y="-30" width="300" height="60" rx="5" fill="#FFE5E5" stroke="#F44336" stroke-width="2"/>
+          <text x="0" y="-15" text-anchor="middle" font-size="13" font-weight="bold" fill="#C62828">SIGNS & SYMPTOMS</text>
+          ${(data.signsSymptoms || []).slice(0, 4).map((item: string, i: number) => 
+            `<text x="${-70 + (i % 2) * 140}" y="${5 + Math.floor(i / 2) * 15}" text-anchor="middle" font-size="9">${item.substring(0, 35)}${item.length > 35 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Diagnostics -->
+        <g transform="translate(120, 400)">
+          <circle cx="0" cy="0" r="60" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+          <text x="0" y="-30" text-anchor="middle" font-size="12" font-weight="bold" fill="#1565C0">DIAGNOSTICS</text>
+          ${(data.diagnostics || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${-10 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 25)}${item.length > 25 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Medications -->
+        <g transform="translate(600, 560)">
+          <ellipse cx="0" cy="0" rx="130" ry="45" fill="#FCE4EC" stroke="#E91E63" stroke-width="2"/>
+          <text x="0" y="-25" text-anchor="middle" font-size="12" font-weight="bold" fill="#880E4F">MEDICATIONS</text>
+          ${(data.medications || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 40)}${item.length > 40 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Patient Education -->
+        <g transform="translate(600, 700)">
+          <rect x="-160" y="-25" width="320" height="50" rx="5" fill="#F1F8E9" stroke="#689F38" stroke-width="2"/>
+          <text x="0" y="-10" text-anchor="middle" font-size="12" font-weight="bold" fill="#33691E">PATIENT EDUCATION</text>
+          ${(data.patientEducation || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${5 + i * 12}" text-anchor="middle" font-size="9">${item.substring(0, 50)}${item.length > 50 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Arrows -->
+        <line x1="600" y1="175" x2="600" y2="360" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="220" y1="280" x2="450" y2="280" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="980" y1="280" x2="750" y2="280" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="600" y1="440" x2="600" y2="515" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="600" y1="605" x2="600" y2="675" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+      </svg>
+    `;
+  };
+  
   const exportAsTextbook = async () => {
     if (!course || course.modules.length === 0) {
       alert('No modules available to export');
@@ -152,7 +245,59 @@ export default function CoursePage() {
       const parser = new DOMParser();
       const doc = parser.parseFromString(noteData.html, 'text/html');
       const contentWrapper = doc.querySelector('.content-wrapper');
-      const content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
+      let content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
+      
+      // Process concept maps - find and replace JSON blocks with SVG
+      const conceptMapRegex = /<h3[^>]*>(?:Concept Map:?\s*)([^<]+)<\/h3>[\s\S]*?<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
+      content = content.replace(conceptMapRegex, (match, title, codeContent) => {
+        try {
+          // Decode HTML entities
+          const decodedContent = codeContent
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&');
+          
+          // Extract JSON
+          const jsonMatch = decodedContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const mapData = JSON.parse(jsonMatch[0]);
+            const svgHtml = renderConceptMapAsSVG(mapData);
+            return `<h3>${title}</h3>${svgHtml}`;
+          }
+        } catch (e) {
+          console.error('Failed to parse concept map:', e);
+        }
+        return match; // Return original if parsing fails
+      });
+      
+      // Also handle concept maps without headers
+      const standaloneMapRegex = /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
+      content = content.replace(standaloneMapRegex, (match, codeContent) => {
+        try {
+          const decodedContent = codeContent
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/&amp;/g, '&');
+          
+          if (decodedContent.includes('"central"') && 
+              decodedContent.includes('"pathophysiology"') &&
+              decodedContent.includes('"nursingInterventions"')) {
+            const jsonMatch = decodedContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const mapData = JSON.parse(jsonMatch[0]);
+              const svgHtml = renderConceptMapAsSVG(mapData);
+              return svgHtml;
+            }
+          }
+        } catch (e) {
+          // Not a concept map, return original
+        }
+        return match;
+      });
       
       return `
         <div class="chapter">
