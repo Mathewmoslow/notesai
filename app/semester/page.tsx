@@ -320,7 +320,23 @@ export default function SemesterOverview() {
             Follow this recommended sequence for optimal learning outcomes.
           </Typography>
           
-          {courses.map((course, index) => (
+          {courses.length === 0 ? (
+            <Card sx={{ p: 4, textAlign: 'center', bgcolor: 'background.paper' }}>
+              <Typography variant="h6" gutterBottom>
+                No Courses Added Yet
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                Start building your semester by adding courses and generating notes.
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={() => router.push('/')}
+                sx={{ mt: 2 }}
+              >
+                Go to Main Page
+              </Button>
+            </Card>
+          ) : courses.map((course, index) => (
             <Card key={course.id} sx={{ mb: 3 }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -371,7 +387,7 @@ export default function SemesterOverview() {
                 </Button>
               </CardActions>
             </Card>
-          ))}
+          )))}
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
@@ -379,8 +395,25 @@ export default function SemesterOverview() {
             Detailed Progress
           </Typography>
           
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-            {courses.map(course => {
+          {courses.length === 0 ? (
+            <Card sx={{ p: 4, textAlign: 'center', bgcolor: 'background.paper' }}>
+              <Typography variant="h6" gutterBottom>
+                No Progress to Show
+              </Typography>
+              <Typography variant="body1" color="text.secondary" paragraph>
+                Add courses and generate notes to track your learning progress.
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={() => router.push('/')}
+                sx={{ mt: 2 }}
+              >
+                Get Started
+              </Button>
+            </Card>
+          ) : (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+              {courses.map(course => {
               const progress = getCourseProgress(course.id, course.modules.length);
               return (
                 <Card key={course.id} sx={{ flex: '1 1 300px' }}>
@@ -424,6 +457,7 @@ export default function SemesterOverview() {
               );
             })}
           </Box>
+          )}
         </TabPanel>
       </Container>
     </>

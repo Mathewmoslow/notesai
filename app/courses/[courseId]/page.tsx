@@ -55,33 +55,7 @@ interface Course {
   description?: string;
 }
 
-const courseInfo: { [key: string]: { title: string; instructor: string; description: string } } = {
-  NURS310: {
-    title: 'Adult Health I',
-    instructor: 'G. Hagerstrom; S. Dumas',
-    description: 'Comprehensive study of adult health nursing concepts, pathophysiology, and clinical applications.'
-  },
-  NURS320: {
-    title: 'Adult Health II',
-    instructor: 'G. Hagerstrom; S. Dumas',
-    description: 'Advanced adult health nursing with focus on complex conditions and critical care.'
-  },
-  NURS335: {
-    title: 'NCLEX Immersion I',
-    instructor: 'A. Hernandez; G. Rivera',
-    description: 'Intensive NCLEX preparation covering test-taking strategies and comprehensive content review.'
-  },
-  NURS330: {
-    title: 'Childbearing Family/OBGYN',
-    instructor: 'S. Abdo; M. Douglas',
-    description: 'Maternal-child nursing, obstetrics, gynecology, and family-centered care.'
-  },
-  NURS315: {
-    title: 'Gerontological Nursing',
-    instructor: 'A. Layson',
-    description: 'Specialized care for older adults, aging processes, and geriatric syndromes.'
-  },
-};
+// No hardcoded course info - all data comes from localStorage
 
 export default function CoursePage() {
   const params = useParams();
@@ -92,29 +66,32 @@ export default function CoursePage() {
 
   const loadCourseData = () => {
     try {
-      // First check localStorage for all courses (including dynamic ones)
+      // Check localStorage for all courses
       const storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
-      const dynamicCourse = storedCourses.find((c: { id: string; name: string }) => c.id === courseId);
+      const dynamicCourse = storedCourses.find((c: { id: string; name: string; instructor?: string; description?: string }) => c.id === courseId);
       
       const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
       const courseData = manifest.courses.find((c: Course) => c.id === courseId);
       
       if (courseData) {
-        // Add instructor and description from hardcoded info if available
+        // Use course data from manifest with info from user-courses
         setCourse({
           ...courseData,
-          instructor: courseInfo[courseId]?.instructor || dynamicCourse?.instructor || '',
-          description: courseInfo[courseId]?.description || dynamicCourse?.description || ''
+          instructor: dynamicCourse?.instructor || '',
+          description: dynamicCourse?.description || 'Course content will be generated based on your study materials.'
         });
-      } else {
+      } else if (dynamicCourse) {
         // Create empty course structure for new courses
         setCourse({
           id: courseId,
-          title: courseInfo[courseId]?.title || dynamicCourse?.name || courseId,
-          instructor: courseInfo[courseId]?.instructor || dynamicCourse?.instructor || '',
-          description: courseInfo[courseId]?.description || dynamicCourse?.description || 'Course content will be generated based on your study materials.',
+          title: dynamicCourse.name || courseId,
+          instructor: dynamicCourse.instructor || '',
+          description: dynamicCourse.description || 'Course content will be generated based on your study materials.',
           modules: []
         });
+      } else {
+        // Course not found
+        setCourse(null);
       }
     } catch (error) {
       console.error('Failed to load course data:', error);
@@ -205,16 +182,40 @@ export default function CoursePage() {
 
   if (!course) {
     return (
-      <Container>
-        <Typography>Loading course...</Typography>
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="h5" gutterBottom>
+            Course Not Found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" paragraph>
+            The course "{courseId}" doesn't exist.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            This might happen if:
+          </Typography>
+          <Box sx={{ textAlign: 'left', maxWidth: 400, mx: 'auto', mb: 3 }}>
+            <Typography variant="body2" component="ul">
+              <li>The course was deleted</li>
+              <li>The URL was typed incorrectly</li>
+              <li>You haven't added this course yet</li>
+            </Typography>
+          </Box>
+          <Button 
+            variant="contained" 
+            onClick={() => router.push('/')}
+            startIcon={<HomeIcon />}
+          >
+            Go to Main Page
+          </Button>
+        </Paper>
       </Container>
     );
   }
 
   const info = {
     title: course.title,
-    instructor: course.instructor || courseInfo[courseId]?.instructor || 'TBD',
-    description: course.description || courseInfo[courseId]?.description || 'Course content will be generated based on your study materials.'
+    instructor: course.instructor || 'TBD',
+    description: course.description || 'Course content will be generated based on your study materials.'
   };
   const progress = course.modules.length > 0 ? getProgress() : 0;
   

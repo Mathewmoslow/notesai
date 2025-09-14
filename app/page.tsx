@@ -31,6 +31,7 @@ import {
   AccordionDetails,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -65,13 +66,7 @@ interface Course {
   description?: string;
 }
 
-const defaultCourses: Course[] = [
-  { id: 'NURS310', name: 'Adult Health I' },
-  { id: 'NURS320', name: 'Adult Health II' },
-  { id: 'NURS335', name: 'NCLEX Immersion I' },
-  { id: 'NURS330', name: 'Childbearing Family/OBGYN' },
-  { id: 'NURS315', name: 'Gerontological Nursing' },
-];
+const defaultCourses: Course[] = [];
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -212,12 +207,9 @@ export default function Home() {
         setCourse(parsedCourses[0].id);
       }
     } else {
-      // Initialize with default courses if no saved courses
-      setCourses(defaultCourses);
-      localStorage.setItem('user-courses', JSON.stringify(defaultCourses));
-      if (!course && defaultCourses.length > 0) {
-        setCourse(defaultCourses[0].id);
-      }
+      // No saved courses - start with empty list
+      setCourses([]);
+      setCourse('');
     }
   };
 
@@ -505,6 +497,13 @@ export default function Home() {
             Learning Path
           </Button>
           <GoogleDriveBackup />
+          <IconButton 
+            color="inherit" 
+            onClick={() => window.location.href = '/settings'}
+            sx={{ mr: 1 }}
+          >
+            <SettingsIcon />
+          </IconButton>
           <Button color="inherit" onClick={loadManifest}>
             <RefreshIcon sx={{ mr: 1 }} />
             Load Notes
@@ -526,9 +525,20 @@ export default function Home() {
             <Typography variant="h4" gutterBottom>
               Generate Study Notes
             </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
-              Transform your nursing course materials into comprehensive, exam-ready study notes.
-            </Typography>
+            {courses.length === 0 ? (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2" gutterBottom>
+                  <strong>Welcome to NurseNotes-AI!</strong>
+                </Typography>
+                <Typography variant="body2">
+                  To get started, you'll need to add your first course. Click the Course dropdown below and select "Add New Course".
+                </Typography>
+              </Alert>
+            ) : (
+              <Typography variant="body1" color="text.secondary" paragraph>
+                Transform your nursing course materials into comprehensive, exam-ready study notes.
+              </Typography>
+            )}
             <Typography variant="body2" color="text.secondary" paragraph>
               Supported formats: Word (.doc, .docx), Excel (.xls, .xlsx), PowerPoint (.ppt, .pptx), 
               PDF, HTML, Text files, Markdown, CSV, and various code formats.
@@ -555,14 +565,20 @@ export default function Home() {
                       value={course}
                       onChange={(e) => setCourse(e.target.value)}
                       label="Course"
-                      disabled={loading}
+                      disabled={loading || courses.length === 0}
+                      displayEmpty
                     >
+                      {courses.length === 0 && (
+                        <MenuItem value="" disabled>
+                          No courses available - Add one below
+                        </MenuItem>
+                      )}
                       {courses.map((c) => (
                         <MenuItem key={c.id} value={c.id}>
                           {c.id} - {c.name}
                         </MenuItem>
                       ))}
-                      <Divider />
+                      {courses.length > 0 && <Divider />}
                       <MenuItem onClick={() => {
                         setEditingCourse(null);
                         setNewCourseId('');
@@ -652,43 +668,72 @@ export default function Home() {
                       {/* Note Style */}
                       <Box>
                         <Typography variant="subtitle2" gutterBottom>
-                          Note Style
+                          Note Style - Choose Your Learning Approach
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
+                          Select how detailed and structured you want your notes to be
                         </Typography>
                         <ToggleButtonGroup
                           value={noteStyle}
                           exclusive
                           onChange={(e, newStyle) => newStyle && setNoteStyle(newStyle)}
                           aria-label="note style"
+                          orientation="vertical"
                           fullWidth
                         >
-                          <ToggleButton value="comprehensive" aria-label="comprehensive">
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2">Comprehensive</Typography>
-                              <Typography variant="caption" display="block">Detailed & thorough</Typography>
+                          <ToggleButton value="comprehensive" aria-label="comprehensive" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">📚 Comprehensive</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Maximum detail with extensive explanations and multiple examples. Best for first-time learning.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 10-15 pages • <strong>Use when:</strong> Learning new topics
+                              </Typography>
                             </Box>
                           </ToggleButton>
-                          <ToggleButton value="guided" aria-label="guided">
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2">Guided</Typography>
-                              <Typography variant="caption" display="block">Structured learning path</Typography>
+                          <ToggleButton value="guided" aria-label="guided" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">🎯 Guided</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Well-structured with clear progression and smooth transitions. Balances depth with clarity.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 7-10 pages • <strong>Use when:</strong> Following a learning path
+                              </Typography>
                             </Box>
                           </ToggleButton>
-                          <ToggleButton value="flexible" aria-label="flexible">
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2">Flexible</Typography>
-                              <Typography variant="caption" display="block">Adaptable coverage</Typography>
+                          <ToggleButton value="flexible" aria-label="flexible" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">🔄 Flexible</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Core concepts with room for expansion. Multiple perspectives on key topics.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 5-8 pages • <strong>Use when:</strong> Building on existing knowledge
+                              </Typography>
                             </Box>
                           </ToggleButton>
-                          <ToggleButton value="concise" aria-label="concise">
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2">Concise</Typography>
-                              <Typography variant="caption" display="block">Essential points only</Typography>
+                          <ToggleButton value="concise" aria-label="concise" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">⚡ Concise</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                High-yield facts and essential information only. Direct and focused on NCLEX-relevant content.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 3-5 pages • <strong>Use when:</strong> Quick review or NCLEX prep
+                              </Typography>
                             </Box>
                           </ToggleButton>
-                          <ToggleButton value="exploratory" aria-label="exploratory">
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2">Exploratory</Typography>
-                              <Typography variant="caption" display="block">Discovery-oriented</Typography>
+                          <ToggleButton value="exploratory" aria-label="exploratory" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">🔍 Exploratory</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Thought-provoking questions and deeper connections. Encourages critical thinking.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 6-10 pages • <strong>Use when:</strong> Advanced study or concept exploration
+                              </Typography>
                             </Box>
                           </ToggleButton>
                         </ToggleButtonGroup>
@@ -729,20 +774,21 @@ export default function Home() {
                               {sectionOptions
                                 .filter(section => section.category === category)
                                 .map(section => (
-                                  <Chip
-                                    key={section.id}
-                                    label={section.label}
-                                    onClick={() => {
-                                      setSelectedSections(prev =>
-                                        prev.includes(section.id)
-                                          ? prev.filter(id => id !== section.id)
-                                          : [...prev, section.id]
-                                      );
-                                    }}
-                                    color={selectedSections.includes(section.id) ? 'primary' : 'default'}
-                                    variant={selectedSections.includes(section.id) ? 'filled' : 'outlined'}
-                                    size="small"
-                                  />
+                                  <Tooltip key={section.id} title={section.description} arrow>
+                                    <Chip
+                                      label={section.label}
+                                      onClick={() => {
+                                        setSelectedSections(prev =>
+                                          prev.includes(section.id)
+                                            ? prev.filter(id => id !== section.id)
+                                            : [...prev, section.id]
+                                        );
+                                      }}
+                                      color={selectedSections.includes(section.id) ? 'primary' : 'default'}
+                                      variant={selectedSections.includes(section.id) ? 'filled' : 'outlined'}
+                                      size="small"
+                                    />
+                                  </Tooltip>
                                 ))}
                             </Box>
                           </Box>
@@ -817,11 +863,39 @@ export default function Home() {
             <Typography variant="h4" gutterBottom>
               My Learning Modules
             </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
-              Access your complete digital textbook organized by course. Each module builds on the previous one to create a comprehensive learning experience.
-            </Typography>
-            
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
+            {courses.length === 0 ? (
+              <>
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>No courses added yet!</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Add your first course to start building your personalized digital nursing textbook. Each course will contain all your generated study notes organized by module.
+                  </Typography>
+                </Alert>
+                <Button 
+                  variant="contained" 
+                  startIcon={<AddIcon />}
+                  onClick={() => {
+                    setEditingCourse(null);
+                    setNewCourseId('');
+                    setNewCourseName('');
+                    setNewCourseInstructor('');
+                    setNewCourseDescription('');
+                    setOpenCourseDialog(true);
+                  }}
+                  size="large"
+                >
+                  Add Your First Course
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography variant="body1" color="text.secondary" paragraph>
+                  Access your complete digital textbook organized by course. Each module builds on the previous one to create a comprehensive learning experience.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 3 }}>
               {courses.map((course) => (
                 <Paper key={course.id} sx={{ p: 3, cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}>
                   <Box 
@@ -862,6 +936,8 @@ export default function Home() {
                 </Box>
               </Paper>
             </Box>
+          </>
+        )}
           </TabPanel>
         </Paper>
 

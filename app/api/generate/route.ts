@@ -60,7 +60,16 @@ export async function POST(req: NextRequest) {
       overview: '## Overview\nProvide a brief introduction and context for the topic',
       keyTakeaways: '## Key Takeaways\nHighlight the most important points to remember',
       mainConcepts: '## Main Concepts\nExplore the core ideas, theories, and frameworks',
-      pathophysiology: '## Pathophysiology\nExplain disease processes and biological mechanisms',
+      pathophysiology: `## Pathophysiology
+For EACH disease/condition covered, provide detailed pathophysiology addressing:
+- **What happens in the body:** Core disease mechanism
+- **Key cells/tissues affected:** Specific cellular/tissue involvement
+- **Enzymes/hormones involved:** Biochemical mediators
+- **How cells/tissues respond:** Compensatory and inflammatory responses
+- **Effect on blood/oxygen flow:** Circulatory/respiratory impact
+- **Long-term effects:** Chronic changes and complications
+
+Connect pathophysiology directly to clinical manifestations.`,
       clinicalManifestations: '## Clinical Manifestations\nDescribe signs, symptoms, and assessment findings',
       diagnostics: '## Diagnostic Studies\nReview relevant tests, labs, and imaging',
       nursingInterventions: '## Nursing Interventions\nDetail nursing care and management strategies',
@@ -86,29 +95,34 @@ Generate each concept map as a JSON code block with this exact structure:
 {
   "central": "Main concept name (e.g., 'Pediatric Pain Management', 'Croup', 'Medication Administration', 'Growth & Development')",
   "pathophysiology": [
-    "Underlying disease mechanism specific to this condition",
-    "Physiological changes for this condition",
-    "Disease progression pattern"
+    "What happens: Core mechanism (e.g., 'Inflammation narrows airways')",
+    "Cells/tissues: Specific structures affected",
+    "Response: How body compensates or fails",
+    "Blood/O2: Perfusion or oxygenation changes"
   ],
   "riskFactors": [
-    "Risk factors specific to this condition",
-    "Age groups at risk",
-    "Environmental/seasonal factors"
+    "Primary risk factor",
+    "Secondary risk factor",
+    "Population at highest risk",
+    "Environmental/lifestyle factors"
   ],
   "causes": [
-    "Primary causative agent (virus/bacteria/genetic)",
-    "Specific triggers",
-    "Contributing factors"
+    "Primary etiology (specific pathogen/cause)",
+    "Secondary causes",
+    "Precipitating factors",
+    "Contributing conditions"
   ],
   "signsSymptoms": [
-    "Characteristic presentation",
-    "Cardinal signs specific to this condition",
-    "Distinguishing features from similar conditions"
+    "Primary symptom + WHY (pathophys connection)",
+    "Key sign + underlying mechanism",
+    "Cardinal manifestation + cause",
+    "Distinguishing feature + reason"
   ],
   "diagnostics": [
-    "Gold standard diagnostic test",
-    "Specific lab values/findings",
-    "Imaging findings characteristic of this condition"
+    "Test name: Normal → Expected abnormal",
+    "Lab: Normal range → Disease finding",
+    "Imaging: Normal → Characteristic changes",
+    "Diagnostic criteria specific to condition"
   ],
   "complications": [
     "Common complications for this condition",
@@ -307,24 +321,31 @@ Detailed rationales for each question explaining:
 - Each condition must be explained as if teaching someone who has never heard of it
 
 ### PATHOPHYSIOLOGY REQUIREMENTS
-For EACH disease/condition, provide:
-- Detailed cellular/tissue level changes
-- Step-by-step disease progression
-- Specific inflammatory mediators involved
-- Exact anatomical structures affected
-- Compensatory mechanisms
-- Why specific symptoms occur based on the pathophysiology
+For EACH disease/condition, provide comprehensive pathophysiology including:
+
+1. **What happens in the body:** Detailed mechanism of disease development
+2. **Key cells/tissues affected:** Specific cellular changes and which tissues are impacted
+3. **Enzymes/hormones involved:** Specific mediators, enzymes, hormones, or proteins
+4. **How cells/tissues respond:** Inflammatory response, compensatory mechanisms
+5. **Effect on blood/oxygen flow:** Vascular changes, perfusion alterations, oxygen delivery
+6. **Long-term effects:** Chronic changes, fibrosis, remodeling, permanent damage
+
+Additionally include:
+- Step-by-step disease progression with timeframes
+- Why specific symptoms occur (connect pathophys to manifestations)
 - Age-specific variations in disease process
+- Progression if untreated
 
 ### CLINICAL MANIFESTATIONS REQUIREMENTS
 For EACH condition, include:
-- Early vs Late signs/symptoms with timeframes
-- Specific vital sign ranges for each stage
-- Physical assessment findings by body system
-- Age-specific manifestations
-- Classic presentation vs atypical presentations
-- Red flag symptoms requiring immediate intervention
-- Progression timeline if untreated
+- **Symptoms with rationale:** Each symptom paired with WHY it occurs (pathophysiology connection)
+- **Early vs Late:** Progressive signs/symptoms with timeframes
+- **Vital sign changes:** Specific ranges for each stage of disease
+- **Physical assessment:** System-by-system findings
+- **Age-specific variations:** How presentation differs by age
+- **Classic vs Atypical:** Common presentation vs unusual manifestations
+- **Red flags:** Critical symptoms requiring immediate intervention
+- **Progression:** Timeline and worsening if untreated
 
 ### DIAGNOSTIC REQUIREMENTS
 Always include specific values:
