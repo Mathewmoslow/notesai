@@ -133,51 +133,306 @@ export default function CoursePage() {
       return;
     }
     
-    // Create a combined HTML document with all modules
+    // Get actual content from localStorage
+    const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+    
+    // Build chapters with actual content
+    const chapters = course.modules.map((module, index) => {
+      const noteData = storedNotes[module.slug];
+      if (!noteData || !noteData.html) {
+        return `
+          <div class="chapter">
+            <h1 class="chapter-title">Chapter ${index + 1}: ${module.title}</h1>
+            <p class="missing-content">Content not available. Please regenerate this note.</p>
+          </div>
+        `;
+      }
+      
+      // Extract just the body content from the stored HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(noteData.html, 'text/html');
+      const contentWrapper = doc.querySelector('.content-wrapper');
+      const content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
+      
+      return `
+        <div class="chapter">
+          <h1 class="chapter-title">Chapter ${index + 1}: ${module.title}</h1>
+          <div class="chapter-meta">Module: ${module.module || 'General'} | Date: ${module.date}</div>
+          ${content}
+        </div>
+      `;
+    }).join('');
+    
+    // Create print-optimized HTML document
     const htmlContent = `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${course.title} - Complete Textbook</title>
   <style>
-    body { font-family: 'Times New Roman', serif; line-height: 1.8; max-width: 800px; margin: 0 auto; padding: 40px; }
-    h1 { color: #1976d2; page-break-before: always; }
-    h2 { color: #115293; margin-top: 30px; }
-    h3 { color: #333; }
-    .module { page-break-before: always; margin-bottom: 60px; }
-    .toc { page-break-after: always; }
-    .toc-item { margin: 10px 0; }
-    @media print { 
-      body { margin: 0; padding: 20px; }
-      .module { page-break-before: always; }
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    /* Page setup for 8.5x11 inches */
+    @page {
+      size: 8.5in 11in;
+      margin: 1in;
+    }
+    
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.6;
+      color: #000;
+      background: white;
+    }
+    
+    /* For screen viewing - simulate paper */
+    @media screen {
+      body {
+        background: #e0e0e0;
+      }
+      .page-container {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 20px auto;
+        padding: 1in;
+        background: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      }
+    }
+    
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+      }
+      .page-container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+    }
+    
+    /* Cover page */
+    .cover-page {
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 9in;
+      text-align: center;
+    }
+    
+    .cover-title {
+      font-size: 36pt;
+      font-weight: bold;
+      color: #1976d2;
+      margin-bottom: 20px;
+    }
+    
+    .cover-subtitle {
+      font-size: 18pt;
+      color: #666;
+      margin-bottom: 40px;
+    }
+    
+    .cover-meta {
+      font-size: 12pt;
+      color: #888;
+    }
+    
+    /* Table of contents */
+    .toc {
+      page-break-after: always;
+    }
+    
+    .toc h2 {
+      font-size: 24pt;
+      color: #1976d2;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #1976d2;
+      padding-bottom: 10px;
+    }
+    
+    .toc-item {
+      font-size: 12pt;
+      margin: 10px 0;
+      padding-left: 20px;
+      line-height: 1.8;
+    }
+    
+    .toc-item::before {
+      content: "→ ";
+      color: #1976d2;
+      margin-left: -20px;
+      margin-right: 10px;
+    }
+    
+    /* Chapters */
+    .chapter {
+      page-break-before: always;
+    }
+    
+    .chapter-title {
+      font-size: 24pt;
+      color: #1976d2;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #1976d2;
+    }
+    
+    .chapter-meta {
+      font-size: 10pt;
+      color: #666;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+    
+    /* Content styles */
+    h1 { font-size: 20pt; color: #1976d2; margin: 20px 0 10px; }
+    h2 { font-size: 16pt; color: #115293; margin: 18px 0 8px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    h3 { font-size: 14pt; color: #333; margin: 15px 0 6px; }
+    h4 { font-size: 12pt; color: #555; margin: 12px 0 5px; }
+    
+    p {
+      margin: 10px 0;
+      text-align: justify;
+    }
+    
+    ul, ol {
+      margin: 10px 0 10px 30px;
+    }
+    
+    li {
+      margin: 5px 0;
+    }
+    
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 10pt;
+    }
+    
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    
+    /* Code blocks */
+    pre, code {
+      font-family: 'Courier New', monospace;
+      font-size: 9pt;
+      background: #f5f5f5;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    
+    pre {
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    
+    /* Alerts and special blocks */
+    .alert {
+      padding: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #1976d2;
+      background: #f0f7ff;
+    }
+    
+    /* Images and concept maps */
+    img, svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 15px auto;
+    }
+    
+    /* Page breaks */
+    .page-break {
+      page-break-before: always;
+    }
+    
+    /* Missing content notice */
+    .missing-content {
+      padding: 20px;
+      background: #fff3e0;
+      border: 1px dashed #ff9800;
+      color: #e65100;
+      text-align: center;
+      font-style: italic;
+    }
+    
+    /* Footer for each page (when printed) */
+    @media print {
+      .chapter {
+        position: relative;
+      }
+      
+      @bottom-center {
+        content: counter(page);
+      }
     }
   </style>
 </head>
 <body>
-  <div class="toc">
-    <h1>${course.title}</h1>
-    <h2>Table of Contents</h2>
-    ${course.modules.map((m, i) => `
-      <div class="toc-item">${i + 1}. ${m.title}</div>
-    `).join('')}
-  </div>
-  
-  ${course.modules.map((m, i) => `
-    <div class="module">
-      <h1>Chapter ${i + 1}: ${m.title}</h1>
-      <iframe src="${m.path}" style="width:100%; min-height:800px; border:none;"></iframe>
+  <div class="page-container">
+    <!-- Cover Page -->
+    <div class="cover-page">
+      <h1 class="cover-title">${course.title}</h1>
+      <p class="cover-subtitle">Complete Course Textbook</p>
+      <p class="cover-meta">
+        ${course.instructor ? `Instructor: ${course.instructor}<br>` : ''}
+        Generated: ${new Date().toLocaleDateString()}<br>
+        Total Modules: ${course.modules.length}
+      </p>
     </div>
-  `).join('')}
+    
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      ${course.modules.map((m, i) => `
+        <div class="toc-item">
+          <strong>Chapter ${i + 1}:</strong> ${m.title}
+          ${m.module ? `<span style="color: #666; font-size: 10pt;"> (${m.module})</span>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    
+    <!-- Chapters -->
+    ${chapters}
+  </div>
 </body>
 </html>`;
     
-    // Download as HTML file
-    const blob = new Blob([htmlContent], { type: 'text/html' });
+    // Create and download the file
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${courseId}-complete-textbook.html`;
+    a.download = `${courseId}-textbook-${new Date().toISOString().split('T')[0]}.html`;
     a.click();
+    
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   if (!course) {

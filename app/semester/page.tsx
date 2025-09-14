@@ -116,6 +116,10 @@ export default function SemesterOverview() {
   };
 
   const exportSemesterTextbook = async () => {
+    if (courses.length === 0) {
+      alert('No courses available to export');
+      return;
+    }
     // Create comprehensive semester textbook
     const htmlContent = `
 <!DOCTYPE html>
