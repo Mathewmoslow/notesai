@@ -190,8 +190,32 @@ export default function SemesterOverview() {
         // Extract content from stored HTML
         const parser = new DOMParser();
         const doc = parser.parseFromString(noteData.html, 'text/html');
+        
+        // Try multiple selectors to find the content
+        let content = '';
         const contentWrapper = doc.querySelector('.content-wrapper');
-        let content = contentWrapper ? contentWrapper.innerHTML : noteData.html;
+        const mainContent = doc.querySelector('main');
+        const bodyContent = doc.body;
+        
+        if (contentWrapper) {
+          content = contentWrapper.innerHTML;
+        } else if (mainContent) {
+          content = mainContent.innerHTML;
+        } else if (bodyContent) {
+          content = bodyContent.innerHTML;
+        } else {
+          content = noteData.html;
+        }
+        
+        // Clean up the content - remove any nested HTML structure
+        content = content.replace(/<\/?html[^>]*>/gi, '');
+        content = content.replace(/<\/?head[^>]*>/gi, '');
+        content = content.replace(/<\/?body[^>]*>/gi, '');
+        content = content.replace(/<meta[^>]*>/gi, '');
+        content = content.replace(/<title[^>]*>.*?<\/title>/gi, '');
+        content = content.replace(/<link[^>]*>/gi, '');
+        content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+        content = content.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
         
         // Remove all internal links to prevent "Not allowed to load local resource" errors
         content = content.replace(/<a\s+[^>]*href=['"]\/notes\/[^'"]*['"][^>]*>(.*?)<\/a>/gi, '$1');
