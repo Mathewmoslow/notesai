@@ -43,7 +43,6 @@ const ConceptMap: React.FC<ConceptMapProps> = ({ data }) => {
     }}>
       <svg
         width="100%"
-        height="auto"
         viewBox="0 0 1200 800"
         preserveAspectRatio="xMidYMid meet"
         style={{ 

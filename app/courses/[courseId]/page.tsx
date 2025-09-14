@@ -133,7 +133,7 @@ export default function CoursePage() {
     if (!data || !data.central) return '';
     
     return `
-      <svg width="100%" height="auto" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" style="width: 100%; max-width: 100%; height: auto; display: block; margin: 15px auto; background: white; border: 1px solid #ddd; border-radius: 8px;">
+      <svg width="100%" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" style="width: 100%; max-width: 100%; display: block; margin: 15px auto; background: white; border: 1px solid #ddd; border-radius: 8px;">
         <!-- Arrow markers -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
@@ -283,9 +283,11 @@ export default function CoursePage() {
             .replace(/&#39;/g, "'")
             .replace(/&amp;/g, '&');
           
+          // Check if it's a concept map JSON (has central and branches)
           if (decodedContent.includes('"central"') && 
-              decodedContent.includes('"pathophysiology"') &&
-              decodedContent.includes('"nursingInterventions"')) {
+              (decodedContent.includes('"branches"') || 
+               decodedContent.includes('"pathophysiology"') ||
+               decodedContent.includes('"complications"'))) {
             const jsonMatch = decodedContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const mapData = JSON.parse(jsonMatch[0]);
