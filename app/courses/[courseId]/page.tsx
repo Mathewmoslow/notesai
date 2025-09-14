@@ -188,7 +188,7 @@ export default function CoursePage() {
             Course Not Found
           </Typography>
           <Typography variant="body1" color="text.secondary" paragraph>
-            The course "{courseId}" doesn't exist.
+            The course &quot;{courseId}&quot; doesn&apos;t exist.
           </Typography>
           <Typography variant="body2" color="text.secondary" paragraph>
             This might happen if:
@@ -197,7 +197,7 @@ export default function CoursePage() {
             <Typography variant="body2" component="ul">
               <li>The course was deleted</li>
               <li>The URL was typed incorrectly</li>
-              <li>You haven't added this course yet</li>
+              <li>You haven&apos;t added this course yet</li>
             </Typography>
           </Box>
           <Button 

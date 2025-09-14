@@ -126,7 +126,7 @@ export default function SettingsPage() {
       
       const notesCount = Object.keys(notes).length;
       const coursesCount = courses.length;
-      const modulesCount = manifest.courses.reduce((acc: number, course: any) => 
+      const modulesCount = manifest.courses.reduce((acc: number, course: { modules?: unknown[] }) => 
         acc + (course.modules?.length || 0), 0);
       
       return { notesCount, coursesCount, modulesCount };

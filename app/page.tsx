@@ -66,7 +66,7 @@ interface Course {
   description?: string;
 }
 
-const defaultCourses: Course[] = [];
+// const defaultCourses: Course[] = [];
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -531,7 +531,7 @@ export default function Home() {
                   <strong>Welcome to NurseNotes-AI!</strong>
                 </Typography>
                 <Typography variant="body2">
-                  To get started, you'll need to add your first course. Click the Course dropdown below and select "Add New Course".
+                  To get started, you&apos;ll need to add your first course. Click the Course dropdown below and select &quot;Add New Course&quot;.
                 </Typography>
               </Alert>
             ) : (
