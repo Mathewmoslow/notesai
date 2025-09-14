@@ -192,11 +192,19 @@ export default function SemesterOverview() {
               .replace(/&#39;/g, "'")
               .replace(/&amp;/g, '&');
             
-            // Check if it's a concept map JSON (has central and branches)
+            // Check if it's a concept map JSON (has central and any of the common branches)
             if (decodedContent.includes('"central"') && 
                 (decodedContent.includes('"branches"') || 
                  decodedContent.includes('"pathophysiology"') ||
-                 decodedContent.includes('"complications"'))) {
+                 decodedContent.includes('"complications"') ||
+                 decodedContent.includes('"riskFactors"') ||
+                 decodedContent.includes('"causes"') ||
+                 decodedContent.includes('"signsSymptoms"') ||
+                 decodedContent.includes('"diagnostics"') ||
+                 decodedContent.includes('"medications"') ||
+                 decodedContent.includes('"nursingInterventions"') ||
+                 decodedContent.includes('"treatments"') ||
+                 decodedContent.includes('"patientEducation"'))) {
               const jsonMatch = decodedContent.match(/\{[\s\S]*\}/);
               if (jsonMatch) {
                 const mapData = JSON.parse(jsonMatch[0]);
