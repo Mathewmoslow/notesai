@@ -116,7 +116,19 @@ export default function SemesterOverview() {
   };
 
   // Function to render concept map as SVG HTML (simplified version)
-  const renderConceptMapAsSVG = (data: any) => {
+  const renderConceptMapAsSVG = (data: {
+    central?: string;
+    pathophysiology?: string[];
+    riskFactors?: string[];
+    causes?: string[];
+    signsSymptoms?: string[];
+    diagnostics?: string[];
+    medications?: string[];
+    nursingInterventions?: string[];
+    complications?: string[];
+    treatments?: string[];
+    patientEducation?: string[];
+  }) => {
     if (!data || !data.central) return '';
     
     return `
@@ -186,7 +198,7 @@ export default function SemesterOverview() {
         
         // Process concept maps - replace JSON with SVG
         const conceptMapRegex = /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
-        content = content.replace(conceptMapRegex, (match, codeContent) => {
+        content = content.replace(conceptMapRegex, (match: string, codeContent: string) => {
           try {
             const decodedContent = codeContent
               .replace(/&lt;/g, '<')
@@ -214,7 +226,7 @@ export default function SemesterOverview() {
                 return renderConceptMapAsSVG(mapData);
               }
             }
-          } catch (e) {
+          } catch {
             // Not a concept map
           }
           return match;

@@ -128,7 +128,19 @@ export default function CoursePage() {
   };
 
   // Function to render concept map as SVG HTML
-  const renderConceptMapAsSVG = (conceptMapData: any) => {
+  const renderConceptMapAsSVG = (conceptMapData: {
+    central?: string;
+    pathophysiology?: string[];
+    riskFactors?: string[];
+    causes?: string[];
+    signsSymptoms?: string[];
+    diagnostics?: string[];
+    medications?: string[];
+    nursingInterventions?: string[];
+    complications?: string[];
+    treatments?: string[];
+    patientEducation?: string[];
+  }) => {
     const data = conceptMapData;
     if (!data || !data.central) return '';
     
@@ -252,7 +264,7 @@ export default function CoursePage() {
       
       // Process concept maps - find and replace JSON blocks with SVG
       const conceptMapRegex = /<h3[^>]*>(?:Concept Map:?\s*)([^<]+)<\/h3>[\s\S]*?<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
-      content = content.replace(conceptMapRegex, (match, title, codeContent) => {
+      content = content.replace(conceptMapRegex, (match: string, title: string, codeContent: string) => {
         try {
           // Decode HTML entities
           const decodedContent = codeContent
@@ -269,15 +281,15 @@ export default function CoursePage() {
             const svgHtml = renderConceptMapAsSVG(mapData);
             return `<h3>${title}</h3>${svgHtml}`;
           }
-        } catch (e) {
-          console.error('Failed to parse concept map:', e);
+        } catch (error) {
+          console.error('Failed to parse concept map:', error);
         }
         return match; // Return original if parsing fails
       });
       
       // Also handle concept maps without headers
       const standaloneMapRegex = /<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g;
-      content = content.replace(standaloneMapRegex, (match, codeContent) => {
+      content = content.replace(standaloneMapRegex, (match: string, codeContent: string) => {
         try {
           const decodedContent = codeContent
             .replace(/&lt;/g, '<')
@@ -306,7 +318,7 @@ export default function CoursePage() {
               return svgHtml;
             }
           }
-        } catch (e) {
+        } catch {
           // Not a concept map, return original
         }
         return match;
