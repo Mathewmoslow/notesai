@@ -387,7 +387,7 @@ export default function SemesterOverview() {
                 </Button>
               </CardActions>
             </Card>
-          )))}
+          ))}
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
