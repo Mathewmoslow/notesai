@@ -125,11 +125,27 @@ export default function GoogleDriveBackup() {
           });
         }
 
-        // Verify data was restored properly
+        // Verify data was restored properly and fix structure if needed
         const verifyRestore = () => {
-          const courses = localStorage.getItem('user-courses');
+          let courses = localStorage.getItem('user-courses');
           const manifest = localStorage.getItem('courses-manifest');
           const notes = localStorage.getItem('generated-notes');
+
+          // If manifest exists but courses don't, rebuild courses from manifest
+          if (manifest && !courses) {
+            const manifestData = JSON.parse(manifest);
+            if (manifestData.courses && manifestData.courses.length > 0) {
+              console.log('Rebuilding user-courses from manifest during restore...');
+              const rebuiltCourses = manifestData.courses.map((c: any) => ({
+                id: c.id,
+                name: c.title || c.id,
+                instructor: '',
+                description: `Restored from backup (${c.modules?.length || 0} modules)`
+              }));
+              localStorage.setItem('user-courses', JSON.stringify(rebuiltCourses));
+              courses = JSON.stringify(rebuiltCourses);
+            }
+          }
 
           console.log('Restore verification:', {
             courses: courses ? JSON.parse(courses) : null,
@@ -137,7 +153,7 @@ export default function GoogleDriveBackup() {
             notesCount: notes ? Object.keys(JSON.parse(notes)).length : 0
           });
 
-          return courses && manifest && notes;
+          return manifest && notes; // Only require manifest and notes
         };
 
         setMessage({

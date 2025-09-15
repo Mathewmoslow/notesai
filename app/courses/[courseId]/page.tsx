@@ -109,11 +109,26 @@ export default function CoursePage() {
   const loadCourseData = () => {
     try {
       // Check localStorage for all courses
-      const storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
-      const dynamicCourse = storedCourses.find((c: { id: string; name: string; instructor?: string; description?: string }) => c.id === courseId);
-      
+      let storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
+      let dynamicCourse = storedCourses.find((c: { id: string; name: string; instructor?: string; description?: string }) => c.id === courseId);
+
       const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
       const courseData = manifest.courses.find((c: Course) => c.id === courseId);
+
+      // If course data exists in manifest but not in user-courses, rebuild it
+      if (courseData && !dynamicCourse) {
+        console.log('Rebuilding course definition from manifest...');
+        dynamicCourse = {
+          id: courseData.id,
+          name: courseData.title || courseData.id,
+          instructor: '',
+          description: `${courseData.modules?.length || 0} modules available`
+        };
+
+        // Add to storedCourses and save
+        storedCourses.push(dynamicCourse);
+        localStorage.setItem('user-courses', JSON.stringify(storedCourses));
+      }
       
       if (courseData) {
         // Use course data from manifest with info from user-courses

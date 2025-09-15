@@ -226,10 +226,37 @@ export default function Home() {
           setCourse(parsedCourses[0].id);
         }
       } else {
-        // No saved courses - start with empty list
-        console.log('No saved courses found');
-        setCourses([]);
-        setCourse('');
+        // No saved courses - try to rebuild from manifest
+        console.log('No saved courses found, checking manifest...');
+        const manifestData = localStorage.getItem('courses-manifest');
+        if (manifestData) {
+          const manifest = JSON.parse(manifestData);
+          if (manifest.courses && manifest.courses.length > 0) {
+            console.log('Rebuilding courses from manifest...');
+            // Create course definitions from manifest
+            const rebuiltCourses: Course[] = manifest.courses.map((c: any) => ({
+              id: c.id,
+              name: c.title || c.id,
+              instructor: '',
+              description: `Auto-generated from backup (${c.modules?.length || 0} modules)`
+            }));
+
+            // Save the rebuilt courses
+            saveCourses(rebuiltCourses);
+            console.log('Rebuilt courses:', rebuiltCourses);
+
+            // Set default course
+            if (rebuiltCourses.length > 0) {
+              setCourse(rebuiltCourses[0].id);
+            }
+          } else {
+            setCourses([]);
+            setCourse('');
+          }
+        } else {
+          setCourses([]);
+          setCourse('');
+        }
       }
     } catch (error) {
       console.error('Failed to load courses:', error);
@@ -526,16 +553,20 @@ export default function Home() {
             Learning Path
           </Button>
           <GoogleDriveBackup />
-          <IconButton 
-            color="inherit" 
+          <IconButton
+            color="inherit"
             onClick={() => window.location.href = '/settings'}
             sx={{ mr: 1 }}
           >
             <SettingsIcon />
           </IconButton>
-          <Button color="inherit" onClick={loadManifest}>
+          <Button color="inherit" onClick={() => {
+            loadManifest();
+            loadCourses();
+            setSuccess('Data refreshed successfully');
+          }}>
             <RefreshIcon sx={{ mr: 1 }} />
-            Load Notes
+            Sync Data
           </Button>
         </Toolbar>
       </AppBar>
@@ -953,21 +984,36 @@ export default function Home() {
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <Typography variant="h4" gutterBottom>
-              My Learning Modules
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Typography variant="h4">
+                My Learning Modules
+              </Typography>
+              {courses.length === 0 && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => {
+                    loadCourses();
+                    loadManifest();
+                  }}
+                  startIcon={<RefreshIcon />}
+                >
+                  Refresh Courses
+                </Button>
+              )}
+            </Box>
             {courses.length === 0 ? (
               <>
                 <Alert severity="info" sx={{ mb: 3 }}>
                   <Typography variant="body2" gutterBottom>
-                    <strong>No courses added yet!</strong>
+                    <strong>No courses found!</strong>
                   </Typography>
                   <Typography variant="body2">
-                    Add your first course to start building your personalized digital nursing textbook. Each course will contain all your generated study notes organized by module.
+                    If you have restored from a backup, click "Refresh Courses" above. Otherwise, add your first course to start building your personalized digital nursing textbook.
                   </Typography>
                 </Alert>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   startIcon={<AddIcon />}
                   onClick={() => {
                     setEditingCourse(null);
