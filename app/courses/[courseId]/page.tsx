@@ -36,7 +36,6 @@ import {
   Quiz as QuizIcon,
   Download as DownloadIcon,
   Home as HomeIcon,
-  DragHandle as DragHandleIcon,
   ArrowUpward as ArrowUpIcon,
   ArrowDownward as ArrowDownIcon,
 } from '@mui/icons-material';
@@ -77,7 +76,6 @@ export default function CoursePage() {
       if (courseData) {
         // Get modules in this group
         const groupModules = courseData.modules.filter((m: Module) => (m.module || 'General Topics') === groupName);
-        const otherModules = courseData.modules.filter((m: Module) => (m.module || 'General Topics') !== groupName);
         
         // Reorder within the group
         const moduleToMove = groupModules[fromIndex];

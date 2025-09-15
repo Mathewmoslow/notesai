@@ -282,8 +282,8 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
         storedNotes[slug].module = editedModule;
         
         // Update manifest
-        manifest.courses.forEach((course: any) => {
-          const moduleIndex = course.modules.findIndex((m: any) => m.slug === slug);
+        manifest.courses.forEach((course: { modules: Array<{ slug: string; module?: string }> }) => {
+          const moduleIndex = course.modules.findIndex((m: { slug: string }) => m.slug === slug);
           if (moduleIndex !== -1) {
             course.modules[moduleIndex].module = editedModule;
           }
