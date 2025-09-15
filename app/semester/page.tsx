@@ -20,6 +20,7 @@ import {
   ListItemText,
   Tabs,
   Tab,
+  IconButton,
 } from '@mui/material';
 import {
   School as SchoolIcon,
@@ -29,6 +30,7 @@ import {
   NavigateNext as NextIcon,
   CheckCircle as CheckIcon,
   Schedule as ScheduleIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 
 interface Module {
@@ -145,16 +147,71 @@ export default function SemesterOverview() {
         <g transform="translate(600, 120)">
           <ellipse cx="0" cy="0" rx="180" ry="55" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
           <text x="0" y="-35" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">PATHOPHYSIOLOGY</text>
+          ${(data.pathophysiology || []).slice(0, 4).map((item: string, i: number) => 
+            `<text x="0" y="${-10 + i * 15}" text-anchor="middle" font-size="10">${item.substring(0, 50)}${item.length > 50 ? '...' : ''}</text>`
+          ).join('')}
         </g>
+        
+        <!-- Risk Factors -->
         <g transform="translate(150, 250)">
           <ellipse cx="0" cy="0" rx="85" ry="45" fill="#FFF3E0" stroke="#FF9800" stroke-width="2"/>
           <text x="0" y="-25" text-anchor="middle" font-size="13" font-weight="bold" fill="#E65100">RISK FACTORS</text>
+          ${(data.riskFactors || []).slice(0, 3).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 30)}${item.length > 30 ? '...' : ''}</text>`
+          ).join('')}
         </g>
+        
+        <!-- Causes -->
+        <g transform="translate(1050, 250)">
+          <ellipse cx="0" cy="0" rx="75" ry="40" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2"/>
+          <text x="0" y="-20" text-anchor="middle" font-size="12" font-weight="bold" fill="#6A1B9A">CAUSES</text>
+          ${(data.causes || []).slice(0, 3).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 12}" text-anchor="middle" font-size="9">${item.substring(0, 25)}${item.length > 25 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Signs & Symptoms -->
+        <g transform="translate(600, 280)">
+          <rect x="-150" y="-30" width="300" height="60" rx="5" fill="#FFE5E5" stroke="#F44336" stroke-width="2"/>
+          <text x="0" y="-15" text-anchor="middle" font-size="13" font-weight="bold" fill="#C62828">SIGNS & SYMPTOMS</text>
+          ${(data.signsSymptoms || []).slice(0, 4).map((item: string, i: number) => 
+            `<text x="${-70 + (i % 2) * 140}" y="${5 + Math.floor(i / 2) * 15}" text-anchor="middle" font-size="9">${item.substring(0, 35)}${item.length > 35 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Diagnostics -->
+        <g transform="translate(120, 400)">
+          <circle cx="0" cy="0" r="60" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+          <text x="0" y="-30" text-anchor="middle" font-size="12" font-weight="bold" fill="#1565C0">DIAGNOSTICS</text>
+          ${(data.diagnostics || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${-10 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 25)}${item.length > 25 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Medications -->
         <g transform="translate(600, 560)">
           <ellipse cx="0" cy="0" rx="130" ry="45" fill="#FCE4EC" stroke="#E91E63" stroke-width="2"/>
           <text x="0" y="-25" text-anchor="middle" font-size="12" font-weight="bold" fill="#880E4F">MEDICATIONS</text>
+          ${(data.medications || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${-5 + i * 15}" text-anchor="middle" font-size="9">${item.substring(0, 40)}${item.length > 40 ? '...' : ''}</text>`
+          ).join('')}
         </g>
+        
+        <!-- Patient Education -->
+        <g transform="translate(600, 700)">
+          <rect x="-160" y="-25" width="320" height="50" rx="5" fill="#F1F8E9" stroke="#689F38" stroke-width="2"/>
+          <text x="0" y="-10" text-anchor="middle" font-size="12" font-weight="bold" fill="#33691E">PATIENT EDUCATION</text>
+          ${(data.patientEducation || []).slice(0, 2).map((item: string, i: number) => 
+            `<text x="0" y="${5 + i * 12}" text-anchor="middle" font-size="9">${item.substring(0, 50)}${item.length > 50 ? '...' : ''}</text>`
+          ).join('')}
+        </g>
+        
+        <!-- Arrows -->
         <line x1="600" y1="175" x2="600" y2="360" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="220" y1="280" x2="450" y2="280" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="980" y1="280" x2="750" y2="280" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="600" y1="440" x2="600" y2="515" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+        <line x1="600" y1="605" x2="600" y2="675" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
       </svg>
     `;
   };
@@ -637,6 +694,9 @@ export default function SemesterOverview() {
     <>
       <AppBar position="static" elevation={0}>
         <Toolbar>
+          <IconButton edge="start" onClick={() => router.push('/')} color="inherit">
+            <HomeIcon />
+          </IconButton>
           <SchoolIcon sx={{ mr: 2 }} />
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             NurseNotes-AI - Semester Overview
