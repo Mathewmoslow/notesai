@@ -43,6 +43,7 @@ export default function GoogleDriveBackup() {
       const backupData = {
         generatedNotes: localStorage.getItem('generated-notes') || '{}',
         coursesManifest: localStorage.getItem('courses-manifest') || '{"courses":[]}',
+        userCourses: localStorage.getItem('user-courses') || '[]',
         courseProgress: {} as { [key: string]: string },
         timestamp: new Date().toISOString(),
         version: '1.0.0'
@@ -99,6 +100,9 @@ export default function GoogleDriveBackup() {
         }
         if (backupData.coursesManifest) {
           localStorage.setItem('courses-manifest', backupData.coursesManifest);
+        }
+        if (backupData.userCourses) {
+          localStorage.setItem('user-courses', backupData.userCourses);
         }
         
         // Restore course progress
