@@ -31,7 +31,9 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Print as PrintIcon
+  Print as PrintIcon,
+  Settings as SettingsIcon,
+  Home as HomeIcon
 } from '@mui/icons-material';
 import RichTextEditor from '@/components/RichTextEditor';
 import NoteRenderer from '@/components/NoteRenderer';
@@ -73,6 +75,8 @@ function NotePageContent() {
   const [editMode, setEditMode] = useState(false);
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editModuleDialog, setEditModuleDialog] = useState(false);
+  const [editedModule, setEditedModule] = useState('');
 
   useEffect(() => {
     try {
@@ -263,6 +267,46 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
     }
   };
 
+  const handleOpenEditModule = () => {
+    setEditedModule(noteData?.module || '');
+    setEditModuleDialog(true);
+  };
+
+  const handleSaveModule = () => {
+    try {
+      const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      
+      if (storedNotes[slug] && noteData) {
+        // Update note data
+        storedNotes[slug].module = editedModule;
+        
+        // Update manifest
+        manifest.courses.forEach((course: any) => {
+          const moduleIndex = course.modules.findIndex((m: any) => m.slug === slug);
+          if (moduleIndex !== -1) {
+            course.modules[moduleIndex].module = editedModule;
+          }
+        });
+        
+        localStorage.setItem('generated-notes', JSON.stringify(storedNotes));
+        localStorage.setItem('courses-manifest', JSON.stringify(manifest));
+        
+        // Update local state
+        setNoteData({
+          ...noteData,
+          module: editedModule
+        });
+        
+        setSuccess('Module updated successfully!');
+        setEditModuleDialog(false);
+      }
+    } catch (error) {
+      console.error('Failed to update module:', error);
+      setError('Failed to update module');
+    }
+  };
+
   const handleDelete = async () => {
     try {
       // Remove from localStorage
@@ -325,12 +369,20 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
   return (
     <>
       <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Button
-          startIcon={<BackIcon />}
-          onClick={() => router.back()}
-        >
-          Back
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            startIcon={<BackIcon />}
+            onClick={() => router.back()}
+          >
+            Back
+          </Button>
+          <IconButton
+            onClick={() => router.push('/')}
+            title="Go to Home"
+          >
+            <HomeIcon />
+          </IconButton>
+        </Box>
         
         <Box sx={{ display: 'flex', gap: 1 }}>
           {!editMode && (
@@ -338,6 +390,12 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
               <Tooltip title="Edit Note">
                 <IconButton onClick={handleEditToggle} color="primary">
                   <EditIcon />
+                </IconButton>
+              </Tooltip>
+              
+              <Tooltip title="Note Settings">
+                <IconButton onClick={handleOpenEditModule} color="primary">
+                  <SettingsIcon />
                 </IconButton>
               </Tooltip>
               
@@ -525,6 +583,41 @@ ${note.html ? note.html.substring(0, 500) : 'No HTML content found'}
             disabled={!customPrompt.trim()}
           >
             Redeploy
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Module Dialog */}
+      <Dialog
+        open={editModuleDialog}
+        onClose={() => setEditModuleDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Edit Note Settings</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Update the module/category for this note to reorganize it within your course.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Module"
+            value={editedModule}
+            onChange={(e) => setEditedModule(e.target.value)}
+            placeholder="e.g., Module 1, Module 2, Week 1, etc."
+            sx={{ mt: 2 }}
+            helperText="This determines how the note is grouped in the course view"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditModuleDialog(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveModule}
+            variant="contained"
+          >
+            Save Changes
           </Button>
         </DialogActions>
       </Dialog>

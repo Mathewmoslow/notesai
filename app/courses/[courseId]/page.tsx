@@ -36,6 +36,9 @@ import {
   Quiz as QuizIcon,
   Download as DownloadIcon,
   Home as HomeIcon,
+  DragHandle as DragHandleIcon,
+  ArrowUpward as ArrowUpIcon,
+  ArrowDownward as ArrowDownIcon,
 } from '@mui/icons-material';
 
 interface Module {
@@ -63,6 +66,47 @@ export default function CoursePage() {
   const courseId = params.courseId as string;
   const [course, setCourse] = useState<Course | null>(null);
   const [completedModules, setCompletedModules] = useState<Set<string>>(new Set());
+
+  const moveModule = (groupName: string, fromIndex: number, toIndex: number) => {
+    if (!course) return;
+    
+    try {
+      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      const courseData = manifest.courses.find((c: Course) => c.id === courseId);
+      
+      if (courseData) {
+        // Get modules in this group
+        const groupModules = courseData.modules.filter((m: Module) => (m.module || 'General Topics') === groupName);
+        const otherModules = courseData.modules.filter((m: Module) => (m.module || 'General Topics') !== groupName);
+        
+        // Reorder within the group
+        const moduleToMove = groupModules[fromIndex];
+        groupModules.splice(fromIndex, 1);
+        groupModules.splice(toIndex, 0, moduleToMove);
+        
+        // Rebuild the full modules array maintaining the group order
+        const newModules: Module[] = [];
+        const groups = new Set(courseData.modules.map((m: Module) => m.module || 'General Topics'));
+        
+        groups.forEach(group => {
+          if (group === groupName) {
+            newModules.push(...groupModules);
+          } else {
+            newModules.push(...courseData.modules.filter((m: Module) => (m.module || 'General Topics') === group));
+          }
+        });
+        
+        // Update manifest
+        courseData.modules = newModules;
+        localStorage.setItem('courses-manifest', JSON.stringify(manifest));
+        
+        // Update local state
+        setCourse({ ...course, modules: newModules });
+      }
+    } catch (error) {
+      console.error('Failed to reorder modules:', error);
+    }
+  };
 
   const loadCourseData = () => {
     try {
@@ -232,6 +276,93 @@ export default function CoursePage() {
     `;
   };
   
+  const downloadAllNotes = async () => {
+    if (!course || course.modules.length === 0) {
+      alert('No modules available to download');
+      return;
+    }
+    
+    // Get all notes from localStorage
+    const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+    
+    // Create a ZIP file with all notes
+    const notesWithContent = course.modules.filter(module => storedNotes[module.slug]);
+    
+    if (notesWithContent.length === 0) {
+      alert('No notes with content available. Please generate notes first.');
+      return;
+    }
+    
+    // Create individual HTML files for each note
+    const htmlFiles = notesWithContent.map(module => {
+      const noteData = storedNotes[module.slug];
+      const fileName = `${module.slug}.html`;
+      
+      const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${module.title}</title>
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      line-height: 1.8;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      color: #333;
+    }
+    h1 { color: #1976d2; border-bottom: 3px solid #1976d2; padding-bottom: 10px; }
+    h2 { color: #115293; margin-top: 30px; }
+    h3 { color: #333; margin-top: 25px; }
+    ul, ol { margin: 15px 0; padding-left: 30px; }
+    li { margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #f5f5f5; font-weight: bold; }
+    blockquote { border-left: 4px solid #1976d2; padding-left: 20px; margin: 20px 0; color: #555; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+    pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    .meta { color: #666; font-style: italic; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>${module.title}</h1>
+  <div class="meta">
+    ${module.module ? `Module: ${module.module} | ` : ''}
+    Date: ${module.date} | 
+    Course: ${course.title}
+  </div>
+  ${noteData.html || noteData.markdown || '<p>No content available</p>'}
+</body>
+</html>`;
+      
+      return { fileName, content: htmlContent };
+    });
+    
+    // For simplicity, download as individual files
+    // In a real app, you'd use a library like JSZip to create a ZIP file
+    htmlFiles.forEach((file, index) => {
+      setTimeout(() => {
+        const blob = new Blob([file.content], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, index * 200); // Stagger downloads to avoid browser blocking
+    });
+    
+    if (htmlFiles.length > 1) {
+      alert(`Downloading ${htmlFiles.length} note files. Please allow multiple downloads in your browser.`);
+    }
+  };
+
   const exportAsTextbook = async () => {
     if (!course || course.modules.length === 0) {
       alert('No modules available to export');
@@ -728,7 +859,11 @@ export default function CoursePage() {
             <Button variant="contained" startIcon={<QuizIcon />}>
               Practice Quiz
             </Button>
-            <Button variant="outlined" startIcon={<DownloadIcon />}>
+            <Button 
+              variant="outlined" 
+              startIcon={<DownloadIcon />}
+              onClick={downloadAllNotes}
+            >
               Download All Notes
             </Button>
           </Box>
@@ -784,7 +919,29 @@ export default function CoursePage() {
               <List>
                 {modules.map((module, index) => (
                   <React.Fragment key={module.slug}>
-                    <ListItem disablePadding>
+                    <ListItem 
+                      disablePadding
+                      secondaryAction={
+                        <Box sx={{ display: 'flex', gap: 0.5 }}>
+                          <IconButton
+                            size="small"
+                            disabled={index === 0}
+                            onClick={() => moveModule(groupName, index, index - 1)}
+                            title="Move up"
+                          >
+                            <ArrowUpIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            disabled={index === modules.length - 1}
+                            onClick={() => moveModule(groupName, index, index + 1)}
+                            title="Move down"
+                          >
+                            <ArrowDownIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      }
+                    >
                       <ListItemButton
                         onClick={() => {
                           router.push(`/notes/${module.slug}`);
@@ -792,6 +949,7 @@ export default function CoursePage() {
                             toggleModuleComplete(module.slug);
                           }
                         }}
+                        sx={{ pr: 10 }}
                       >
                         <ListItemIcon>
                           <IconButton

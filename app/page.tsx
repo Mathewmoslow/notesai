@@ -48,6 +48,7 @@ import {
   Save as SaveIcon,
   ExpandMore as ExpandMoreIcon,
   Settings as SettingsIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import GoogleDriveBackup from '@/components/GoogleDriveBackup';
 import { 
@@ -190,6 +191,7 @@ export default function Home() {
     'keyTerms',
     'practiceQuestions'
   ]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     loadManifest();
@@ -833,29 +835,93 @@ export default function Home() {
                 No notes generated yet. Create your first note to see it here!
               </Alert>
             ) : (
-              <List>
-                {recentNotes.map((note, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem disablePadding>
-                      <ListItemButton
-                        onClick={() => window.location.href = note.path}
-                      >
-                        <ListItemText
-                          primary={note.title}
-                          secondary={
-                            <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
-                              <Chip label={note.courseId || note.course} size="small" color="primary" />
-                              {note.module && <Chip label={note.module} size="small" />}
-                              <Chip label={note.date} size="small" variant="outlined" />
-                            </Box>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                    {index < recentNotes.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
+              <>
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  placeholder="Search notes by title, course, module, or content..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                  sx={{ mb: 2 }}
+                />
+                
+                <List>
+                  {recentNotes
+                    .filter(note => {
+                      const query = searchQuery.toLowerCase();
+                      
+                      // Get the full note content from localStorage for searching
+                      const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+                      const fullNote = storedNotes[note.slug || ''];
+                      
+                      // Extract text content from HTML for searching
+                      let bodyText = '';
+                      if (fullNote && fullNote.html) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = fullNote.html;
+                        bodyText = (tempDiv.textContent || tempDiv.innerText || '').toLowerCase();
+                      }
+                      
+                      return (
+                        note.title.toLowerCase().includes(query) ||
+                        (note.courseId || note.course).toLowerCase().includes(query) ||
+                        (note.module || '').toLowerCase().includes(query) ||
+                        bodyText.includes(query)
+                      );
+                    })
+                    .map((note, index, filteredNotes) => (
+                      <React.Fragment key={index}>
+                        <ListItem disablePadding>
+                          <ListItemButton
+                            onClick={() => window.location.href = note.path}
+                          >
+                            <ListItemText
+                              primary={note.title}
+                              secondary={
+                                <Box sx={{ display: 'flex', gap: 1, mt: 0.5 }}>
+                                  <Chip label={note.courseId || note.course} size="small" color="primary" />
+                                  {note.module && <Chip label={note.module} size="small" />}
+                                  <Chip label={note.date} size="small" variant="outlined" />
+                                </Box>
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                        {index < filteredNotes.length - 1 && <Divider />}
+                      </React.Fragment>
+                    ))}
+                </List>
+                
+                {recentNotes.filter(note => {
+                  const query = searchQuery.toLowerCase();
+                  
+                  // Get the full note content from localStorage for searching
+                  const storedNotes = JSON.parse(localStorage.getItem('generated-notes') || '{}');
+                  const fullNote = storedNotes[note.slug || ''];
+                  
+                  // Extract text content from HTML for searching
+                  let bodyText = '';
+                  if (fullNote && fullNote.html) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = fullNote.html;
+                    bodyText = (tempDiv.textContent || tempDiv.innerText || '').toLowerCase();
+                  }
+                  
+                  return (
+                    note.title.toLowerCase().includes(query) ||
+                    (note.courseId || note.course).toLowerCase().includes(query) ||
+                    (note.module || '').toLowerCase().includes(query) ||
+                    bodyText.includes(query)
+                  );
+                }).length === 0 && searchQuery && (
+                  <Alert severity="info">
+                    No notes found matching "{searchQuery}"
+                  </Alert>
+                )}
+              </>
             )}
           </TabPanel>
 
