@@ -136,7 +136,7 @@ export default function GoogleDriveBackup() {
             const manifestData = JSON.parse(manifest);
             if (manifestData.courses && manifestData.courses.length > 0) {
               console.log('Rebuilding user-courses from manifest during restore...');
-              const rebuiltCourses = manifestData.courses.map((c: any) => ({
+              const rebuiltCourses = manifestData.courses.map((c: { id: string; title?: string; modules?: Array<unknown> }) => ({
                 id: c.id,
                 name: c.title || c.id,
                 instructor: '',

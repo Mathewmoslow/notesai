@@ -234,7 +234,7 @@ export default function Home() {
           if (manifest.courses && manifest.courses.length > 0) {
             console.log('Rebuilding courses from manifest...');
             // Create course definitions from manifest
-            const rebuiltCourses: Course[] = manifest.courses.map((c: any) => ({
+            const rebuiltCourses: Course[] = manifest.courses.map((c: { id: string; title?: string; modules?: Array<unknown> }) => ({
               id: c.id,
               name: c.title || c.id,
               instructor: '',
@@ -1009,7 +1009,7 @@ export default function Home() {
                     <strong>No courses found!</strong>
                   </Typography>
                   <Typography variant="body2">
-                    If you have restored from a backup, click "Refresh Courses" above. Otherwise, add your first course to start building your personalized digital nursing textbook.
+                    If you have restored from a backup, click &quot;Refresh Courses&quot; above. Otherwise, add your first course to start building your personalized digital nursing textbook.
                   </Typography>
                 </Alert>
                 <Button

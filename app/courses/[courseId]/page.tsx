@@ -109,7 +109,7 @@ export default function CoursePage() {
   const loadCourseData = () => {
     try {
       // Check localStorage for all courses
-      let storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
+      const storedCourses = JSON.parse(localStorage.getItem('user-courses') || '[]');
       let dynamicCourse = storedCourses.find((c: { id: string; name: string; instructor?: string; description?: string }) => c.id === courseId);
 
       const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
