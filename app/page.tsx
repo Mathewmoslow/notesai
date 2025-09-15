@@ -196,20 +196,43 @@ export default function Home() {
   useEffect(() => {
     loadManifest();
     loadCourses();
+
+    // Listen for data restore events
+    const handleDataRestore = () => {
+      console.log('Data restore event received, reloading data...');
+      setTimeout(() => {
+        loadManifest();
+        loadCourses();
+      }, 500);
+    };
+
+    window.addEventListener('dataRestored', handleDataRestore);
+
+    return () => {
+      window.removeEventListener('dataRestored', handleDataRestore);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadCourses = () => {
-    const savedCourses = localStorage.getItem('user-courses');
-    if (savedCourses) {
-      const parsedCourses = JSON.parse(savedCourses);
-      setCourses(parsedCourses);
-      // Set default course if not already set
-      if (!course && parsedCourses.length > 0) {
-        setCourse(parsedCourses[0].id);
+    try {
+      const savedCourses = localStorage.getItem('user-courses');
+      if (savedCourses) {
+        const parsedCourses = JSON.parse(savedCourses);
+        console.log('Loading courses:', parsedCourses);
+        setCourses(parsedCourses);
+        // Set default course if not already set
+        if (!course && parsedCourses.length > 0) {
+          setCourse(parsedCourses[0].id);
+        }
+      } else {
+        // No saved courses - start with empty list
+        console.log('No saved courses found');
+        setCourses([]);
+        setCourse('');
       }
-    } else {
-      // No saved courses - start with empty list
+    } catch (error) {
+      console.error('Failed to load courses:', error);
       setCourses([]);
       setCourse('');
     }
@@ -459,7 +482,9 @@ export default function Home() {
 
   const loadManifest = () => {
     try {
-      const manifest = JSON.parse(localStorage.getItem('courses-manifest') || '{"courses":[]}');
+      const manifestData = localStorage.getItem('courses-manifest');
+      console.log('Loading manifest:', manifestData);
+      const manifest = JSON.parse(manifestData || '{"courses":[]}');
       const allNotes: Note[] = [];
       manifest.courses.forEach((course: { id: string; title: string; modules: Note[] }) => {
         course.modules.forEach((module: Note) => {
@@ -470,9 +495,11 @@ export default function Home() {
           });
         });
       });
+      console.log('Loaded notes from manifest:', allNotes.length);
       setRecentNotes(allNotes.slice(0, 10));
-    } catch {
-      console.error('Failed to load manifest');
+    } catch (error) {
+      console.error('Failed to load manifest:', error);
+      setRecentNotes([]);
     }
   };
 

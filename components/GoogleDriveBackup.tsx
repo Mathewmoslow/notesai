@@ -94,6 +94,19 @@ export default function GoogleDriveBackup() {
       if (response.ok && result.success) {
         const backupData = result.data;
         
+        // Clear existing data first to ensure clean restore
+        localStorage.removeItem('generated-notes');
+        localStorage.removeItem('courses-manifest');
+        localStorage.removeItem('user-courses');
+
+        // Remove all course progress entries
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('course-progress-')) {
+            localStorage.removeItem(key);
+          }
+        }
+
         // Restore all data to localStorage
         if (backupData.generatedNotes) {
           localStorage.setItem('generated-notes', backupData.generatedNotes);
@@ -104,7 +117,7 @@ export default function GoogleDriveBackup() {
         if (backupData.userCourses) {
           localStorage.setItem('user-courses', backupData.userCourses);
         }
-        
+
         // Restore course progress
         if (backupData.courseProgress) {
           Object.entries(backupData.courseProgress).forEach(([key, value]) => {
@@ -112,15 +125,38 @@ export default function GoogleDriveBackup() {
           });
         }
 
-        setMessage({ 
-          type: 'success', 
-          text: `Data restored successfully from ${new Date(result.createdTime).toLocaleString()}` 
+        // Verify data was restored properly
+        const verifyRestore = () => {
+          const courses = localStorage.getItem('user-courses');
+          const manifest = localStorage.getItem('courses-manifest');
+          const notes = localStorage.getItem('generated-notes');
+
+          console.log('Restore verification:', {
+            courses: courses ? JSON.parse(courses) : null,
+            manifest: manifest ? JSON.parse(manifest) : null,
+            notesCount: notes ? Object.keys(JSON.parse(notes)).length : 0
+          });
+
+          return courses && manifest && notes;
+        };
+
+        setMessage({
+          type: 'success',
+          text: `Data restored successfully from ${new Date(result.createdTime).toLocaleString()}`
         });
-        
-        // Reload the page to reflect changes
+
+        // Trigger a custom event to notify the main page to reload data
         setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+          if (verifyRestore()) {
+            // Dispatch custom event for data reload
+            window.dispatchEvent(new CustomEvent('dataRestored'));
+            // Still reload page as backup
+            setTimeout(() => window.location.reload(), 1000);
+          } else {
+            console.error('Data verification failed, reloading anyway');
+            window.location.reload();
+          }
+        }, 1000);
       } else {
         setMessage({ type: 'error', text: result.message || 'Failed to restore backup' });
       }
