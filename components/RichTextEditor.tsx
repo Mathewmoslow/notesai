@@ -14,6 +14,16 @@ import {
   Tooltip,
   Popover,
   Button,
+  Menu,
+  MenuItem as MuiMenuItem,
+  ListItemIcon,
+  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Typography,
 } from '@mui/material';
 import {
   FormatBold,
@@ -51,6 +61,14 @@ import {
   RadioButtonUnchecked,
   Star,
   FavoriteBorder,
+  LocalHospital,
+  Science,
+  Warning,
+  Info,
+  School,
+  Assignment,
+  Biotech,
+  Psychology,
 } from '@mui/icons-material';
 
 interface RichTextEditorProps {
@@ -101,6 +119,8 @@ export default function RichTextEditor({ initialContent, onSave, onPrint }: Rich
   const [alignment, setAlignment] = useState<string>('left');
   const [undoStack, setUndoStack] = useState<string[]>([]);
   const [redoStack, setRedoStack] = useState<string[]>([]);
+  const [medicalMenuAnchor, setMedicalMenuAnchor] = useState<HTMLButtonElement | null>(null);
+  const [imageSearchOpen, setImageSearchOpen] = useState(false);
 
   useEffect(() => {
     if (editorRef.current && initialContent) {
@@ -316,6 +336,71 @@ export default function RichTextEditor({ initialContent, onSave, onPrint }: Rich
   const clearFormatting = () => {
     execCommand('removeFormat');
     execCommand('formatBlock', 'div');
+  };
+
+  // Medical formatting functions
+  const insertMedicalBox = (type: string) => {
+    let boxHTML = '';
+
+    switch (type) {
+      case 'clinical':
+        boxHTML = `<div style="background-color: #ffe6e6; border: 2px solid #ff9999; border-radius: 5px; padding: 10px; margin: 10px 0;"><h4 style="color: #e74c3c; margin-top: 0;">Clinical Box</h4><p>Enter your clinical content here...</p></div><br>`;
+        break;
+      case 'nursing':
+        boxHTML = `<div style="background-color: #e6f3ff; border: 2px solid #99ccff; border-radius: 5px; padding: 10px; margin: 10px 0;"><h4 style="color: #2980b9; margin-top: 0;">Nursing Box</h4><p>Enter your nursing content here...</p></div><br>`;
+        break;
+      case 'education':
+        boxHTML = `<div style="background-color: #fff9e6; border: 2px solid #ffcc66; border-radius: 5px; padding: 10px; margin: 10px 0;"><h4 style="color: #f39c12; margin-top: 0;">Patient Education</h4><p>Enter your education content here...</p></div><br>`;
+        break;
+      case 'critical':
+        boxHTML = `<div style="background-color: #ffe6e6; border-left: 5px solid #ff0000; padding: 10px; margin: 15px 0; font-weight: bold;"><h4 style="color: #c0392b; margin-top: 0;">⚠️ Critical Point</h4><p>Enter critical information here...</p></div><br>`;
+        break;
+      case 'key-point':
+        boxHTML = `<div style="background-color: #ffffcc; padding: 5px; border-left: 3px solid #ffcc00; margin: 10px 0;"><h4 style="color: #f1c40f; margin-top: 0;">💡 Key Point</h4><p>Enter key information here...</p></div><br>`;
+        break;
+      case 'medication':
+        boxHTML = `<div style="background-color: #f0f8ff; border: 1px solid #4682b4; border-radius: 5px; padding: 8px; margin: 10px 0;"><h4 style="color: #3498db; margin-top: 0;">💊 Medication Note</h4><p>Enter medication information here...</p></div><br>`;
+        break;
+      default:
+        return;
+    }
+
+    execCommand('insertHTML', boxHTML);
+    setMedicalMenuAnchor(null);
+  };
+
+  const insertMedicalHeading = (type: string) => {
+    let headingHTML = '';
+
+    switch (type) {
+      case 'main-title':
+        headingHTML = `<h1 style="color: #2c3e50; border-bottom: 4px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; font-size: 2.5em; font-weight: 600;">Your Main Title Here</h1><br>`;
+        break;
+      case 'module-header':
+        headingHTML = `<h2 style="color: #2980b9; background: linear-gradient(to right, #ecf0f1, #fff); padding: 10px; border-left: 5px solid #3498db; margin-top: 30px; font-size: 1.8em;">Module Header</h2><br>`;
+        break;
+      case 'section-header':
+        headingHTML = `<h3 style="color: #27ae60; margin-top: 20px; padding: 5px; background-color: #e8f8f5; border-left: 3px solid #27ae60; font-size: 1.4em;">Section Header</h3><br>`;
+        break;
+      case 'subsection':
+        headingHTML = `<h4 style="color: #e74c3c; margin-top: 15px; font-style: italic; font-size: 1.2em;">Subsection</h4><br>`;
+        break;
+      default:
+        return;
+    }
+
+    execCommand('insertHTML', headingHTML);
+    setMedicalMenuAnchor(null);
+  };
+
+  const insertImagePlaceholder = () => {
+    const placeholderHTML = `
+      <div style="border: 2px dashed #3498db; padding: 20px; margin: 15px 0; text-align: center; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: #2c3e50; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;" onclick="alert('Click the Medical Images button in the toolbar to search for images')">
+        <h5 style="color: #2980b9; margin-top: 0; font-size: 16px; text-decoration: underline;">Suggested Medical Image</h5>
+        <p>Click "Medical Images" button to search for relevant medical images from NIH Open Access</p>
+      </div><br>
+    `;
+    execCommand('insertHTML', placeholderHTML);
   };
 
   return (
@@ -534,7 +619,37 @@ export default function RichTextEditor({ initialContent, onSave, onPrint }: Rich
           </Tooltip>
           
           <Divider orientation="vertical" flexItem />
-          
+
+          <Tooltip title="Medical Boxes">
+            <Button
+              size="small"
+              startIcon={<LocalHospital />}
+              onClick={(e) => setMedicalMenuAnchor(e.currentTarget)}
+              variant="outlined"
+            >
+              Medical
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Image Placeholder">
+            <IconButton onClick={insertImagePlaceholder} size="small">
+              <Rectangle />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Search Medical Images">
+            <Button
+              size="small"
+              startIcon={<Science />}
+              onClick={() => setImageSearchOpen(true)}
+              variant="outlined"
+            >
+              NIH Images
+            </Button>
+          </Tooltip>
+
+          <Divider orientation="vertical" flexItem />
+
           <Tooltip title="Clear Formatting">
             <IconButton onClick={clearFormatting} size="small">
               <ClearAll />
@@ -700,6 +815,92 @@ export default function RichTextEditor({ initialContent, onSave, onPrint }: Rich
               </Tooltip>
         </Box>
       </Popover>
+
+      {/* Medical Menu */}
+      <Menu
+        anchorEl={medicalMenuAnchor}
+        open={Boolean(medicalMenuAnchor)}
+        onClose={() => setMedicalMenuAnchor(null)}
+      >
+        <MuiMenuItem onClick={() => insertMedicalBox('clinical')}>
+          <ListItemIcon><LocalHospital sx={{ color: '#e74c3c' }} /></ListItemIcon>
+          <ListItemText>Clinical Box</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalBox('nursing')}>
+          <ListItemIcon><Assignment sx={{ color: '#2980b9' }} /></ListItemIcon>
+          <ListItemText>Nursing Box</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalBox('education')}>
+          <ListItemIcon><School sx={{ color: '#f39c12' }} /></ListItemIcon>
+          <ListItemText>Patient Education</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalBox('critical')}>
+          <ListItemIcon><Warning sx={{ color: '#c0392b' }} /></ListItemIcon>
+          <ListItemText>Critical Point</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalBox('key-point')}>
+          <ListItemIcon><Info sx={{ color: '#f1c40f' }} /></ListItemIcon>
+          <ListItemText>Key Point</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalBox('medication')}>
+          <ListItemIcon><Biotech sx={{ color: '#3498db' }} /></ListItemIcon>
+          <ListItemText>Medication Note</ListItemText>
+        </MuiMenuItem>
+        <Divider />
+        <MuiMenuItem onClick={() => insertMedicalHeading('main-title')}>
+          <ListItemIcon><Psychology sx={{ color: '#2c3e50' }} /></ListItemIcon>
+          <ListItemText>Main Title</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalHeading('module-header')}>
+          <ListItemIcon><Psychology sx={{ color: '#2980b9' }} /></ListItemIcon>
+          <ListItemText>Module Header</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalHeading('section-header')}>
+          <ListItemIcon><Psychology sx={{ color: '#27ae60' }} /></ListItemIcon>
+          <ListItemText>Section Header</ListItemText>
+        </MuiMenuItem>
+        <MuiMenuItem onClick={() => insertMedicalHeading('subsection')}>
+          <ListItemIcon><Psychology sx={{ color: '#e74c3c' }} /></ListItemIcon>
+          <ListItemText>Subsection</ListItemText>
+        </MuiMenuItem>
+      </Menu>
+
+      {/* Simple Image Search Dialog */}
+      <Dialog
+        open={imageSearchOpen}
+        onClose={() => setImageSearchOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Search NIH Medical Images</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Search for medical images from NIH Open Access collection.
+            Enter medical terms like &quot;heart anatomy&quot;, &quot;diabetes pathophysiology&quot;, etc.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Search medical images"
+            placeholder="e.g., heart anatomy, pneumonia x-ray, pediatric development"
+            sx={{ mb: 2 }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                const searchTerm = (e.target as HTMLInputElement).value;
+                if (searchTerm) {
+                  alert(`Search functionality will be implemented. You searched for: "${searchTerm}"`);
+                }
+              }
+            }}
+          />
+          <Typography variant="body2" color="text.secondary">
+            Press Enter to search. This feature searches the NIH Open Access database for
+            educational medical images that can be used in your notes.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setImageSearchOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

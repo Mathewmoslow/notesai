@@ -918,7 +918,7 @@ export default function Home() {
                   );
                 }).length === 0 && searchQuery && (
                   <Alert severity="info">
-                    No notes found matching "{searchQuery}"
+                    No notes found matching &quot;{searchQuery}&quot;
                   </Alert>
                 )}
               </>
