@@ -313,12 +313,64 @@ Detailed rationales for each question explaining:
 
 ## CRITICAL REQUIREMENTS FOR NCLEX-LEVEL CONTENT
 
+### MEDICAL FORMATTING REQUIREMENTS
+Use these HTML medical formatting structures throughout your content to enhance readability and emphasize critical information:
+
+**Clinical Boxes (use for important clinical information):**
+\`\`\`html
+<div class="clinical-box">
+<h4>🏥 Clinical Point</h4>
+<p>Critical clinical information here...</p>
+</div>
+\`\`\`
+
+**Nursing Intervention Boxes:**
+\`\`\`html
+<div class="nursing-box">
+<h4>👩‍⚕️ Nursing Focus</h4>
+<p>Key nursing interventions and considerations...</p>
+</div>
+\`\`\`
+
+**Patient Education Boxes:**
+\`\`\`html
+<div class="education-box">
+<h4>📚 Patient Education</h4>
+<p>Teaching points for patients and families...</p>
+</div>
+\`\`\`
+
+**Critical Warning Boxes:**
+\`\`\`html
+<div class="critical-box">
+<h4>⚠️ Critical Alert</h4>
+<p>Life-threatening considerations and red flags...</p>
+</div>
+\`\`\`
+
+**Key Point Highlights:**
+\`\`\`html
+<div class="key-point-box">
+<h4>💡 Key Point</h4>
+<p>Essential information to remember...</p>
+</div>
+\`\`\`
+
+**Medication Safety Boxes:**
+\`\`\`html
+<div class="medication-box">
+<h4>💊 Medication Focus</h4>
+<p>Drug information, calculations, and safety considerations...</p>
+</div>
+\`\`\`
+
 ### DEPTH AND DETAIL REQUIREMENTS
 - Every section MUST contain specific, detailed, clinically relevant information
 - NO generic statements or surface-level summaries
 - Include specific numbers, values, timeframes, and measurements
 - Provide NCLEX-level depth equivalent to nursing textbooks
 - Each condition must be explained as if teaching someone who has never heard of it
+- Use medical formatting boxes strategically to highlight critical information
 
 ### PATHOPHYSIOLOGY REQUIREMENTS
 For EACH disease/condition, provide comprehensive pathophysiology including:
@@ -409,6 +461,14 @@ ${includedSections}
 - For disease topics, ALWAYS create a comprehensive concept map
 - Use NCLEX-appropriate terminology
 - Connect pathophysiology to clinical manifestations to nursing care
+- **MANDATORY: Use medical formatting boxes throughout your content**
+  - Clinical boxes for pathophysiology and disease mechanisms
+  - Nursing boxes for interventions and care priorities
+  - Education boxes for patient/family teaching
+  - Critical boxes for red flags and emergency situations
+  - Key point boxes for essential concepts
+  - Medication boxes for drug information and calculations
+- Strategically place these boxes to break up dense text and highlight critical information
 
 ## FINAL CRITICAL REMINDERS
 - NEVER write generic, surface-level content
@@ -420,6 +480,15 @@ ${includedSections}
 - Think like you're writing a nursing textbook chapter, not a summary
 - If you find yourself writing "various," "multiple," "may include," or "such as" - STOP and be specific
 - The goal is NCLEX preparation through comprehensive, detailed understanding
+- **MANDATORY MEDICAL FORMATTING:** Use medical boxes throughout your content:
+  - At least 3-5 clinical boxes per major topic
+  - Nursing boxes for all intervention sections
+  - Education boxes for all patient teaching content
+  - Critical boxes for red flags and emergency situations
+  - Key point boxes to highlight essential NCLEX concepts
+  - Medication boxes for all drug-related content
+- Format these boxes using the exact HTML provided above
+- Place boxes strategically to break up dense text and draw attention to critical information
 
 [Context]
 Date: ${dayjs().format('MMMM D, YYYY')}
@@ -503,6 +572,113 @@ Everything you generate below should be the ACTUAL CONTENT of the study notes, n
     table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
     th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
     th { background: var(--primary); color: white; }
+
+    /* Medical Formatting Boxes */
+    .clinical-box {
+      background-color: #ffe6e6;
+      border: 2px solid #ff9999;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .clinical-box h4 {
+      color: #e74c3c;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+
+    .nursing-box {
+      background-color: #e6f3ff;
+      border: 2px solid #99ccff;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .nursing-box h4 {
+      color: #2980b9;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+
+    .education-box {
+      background-color: #fff9e6;
+      border: 2px solid #ffcc66;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .education-box h4 {
+      color: #f39c12;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+
+    .critical-box {
+      background-color: #ffe6e6;
+      border-left: 6px solid #ff0000;
+      border-radius: 4px;
+      padding: 16px;
+      margin: 20px 0;
+      font-weight: 500;
+      box-shadow: 0 2px 6px rgba(255,0,0,0.2);
+    }
+    .critical-box h4 {
+      color: #c0392b;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      font-weight: 700;
+    }
+
+    .key-point-box {
+      background-color: #ffffcc;
+      border-left: 4px solid #ffcc00;
+      padding: 12px;
+      margin: 16px 0;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .key-point-box h4 {
+      color: #f1c40f;
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 1em;
+      font-weight: 600;
+    }
+
+    .medication-box {
+      background-color: #f0f8ff;
+      border: 1px solid #4682b4;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .medication-box h4 {
+      color: #3498db;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
+
+    /* Ensure medical boxes are readable in print */
+    @media print {
+      .clinical-box, .nursing-box, .education-box, .critical-box, .key-point-box, .medication-box {
+        border: 2px solid #333 !important;
+        background-color: #f9f9f9 !important;
+        break-inside: avoid;
+      }
+    }
     @media print { 
       body { margin: 0; }
       .header-content, .content-wrapper { box-shadow: none; }
