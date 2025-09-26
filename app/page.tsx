@@ -738,6 +738,17 @@ export default function Home() {
                               </Typography>
                             </Box>
                           </ToggleButton>
+                          <ToggleButton value="medical-formatted" aria-label="medical-formatted" sx={{ py: 2, justifyContent: 'flex-start' }}>
+                            <Box sx={{ textAlign: 'left', width: '100%' }}>
+                              <Typography variant="body1" fontWeight="bold">🏥 Medical Formatted</Typography>
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Professional medical formatting with color-coded boxes. 🔴 Critical info, 🔵 Nursing interventions, 🟡 Education points.
+                              </Typography>
+                              <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                                <strong>Output:</strong> 8-12 pages • <strong>Use when:</strong> Clinical practice preparation
+                              </Typography>
+                            </Box>
+                          </ToggleButton>
                         </ToggleButtonGroup>
                       </Box>
 

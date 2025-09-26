@@ -305,7 +305,9 @@ Detailed rationales for each question explaining:
       
       concise: `Create focused, efficient study notes that capture the essential information. Prioritize high-yield content and key concepts. Be clear and direct while maintaining accuracy.`,
       
-      exploratory: `Create discovery-oriented notes that encourage deeper thinking about the topic. Present information in a way that promotes curiosity and further investigation. Include thought-provoking questions and connections.`
+      exploratory: `Create discovery-oriented notes that encourage deeper thinking about the topic. Present information in a way that promotes curiosity and further investigation. Include thought-provoking questions and connections.`,
+
+      'medical-formatted': `Create professionally formatted medical study notes with intentional color-coded visual organization. Use the comprehensive medical formatting system with strict adherence to the color-coding strategy for maximum clinical impact and exam preparation.`
     };
     
     // Load system prompt with flexibility
@@ -431,6 +433,79 @@ Must be specific and actionable:
 
 ## Your Approach
 ${styleInstructions[style] || styleInstructions.comprehensive}
+
+${style === 'medical-formatted' ? `
+## MEDICAL FORMATTED STYLE - SPECIAL REQUIREMENTS
+
+When using the medical-formatted style, you MUST follow this intentional color-coded organization strategy:
+
+### 🔴 RED BOXES - CRITICAL/EMERGENCY INFORMATION
+Use clinical-box class for:
+- Life-threatening conditions and emergency priorities
+- Critical assessment findings that require immediate action
+- Red flag symptoms and warning signs
+- Emergency interventions and protocols
+- ABC priority situations
+- Critical lab values and vital sign parameters
+
+### 🔵 BLUE BOXES - NURSING INTERVENTIONS
+Use nursing-box class for:
+- Specific nursing assessments and monitoring
+- Evidence-based nursing interventions
+- Priority nursing actions and care plans
+- Nursing responsibilities and scope
+- Delegation and supervision considerations
+- Documentation requirements
+
+### 🟡 YELLOW BOXES - PATIENT/FAMILY EDUCATION
+Use education-box class for:
+- Patient and family teaching points
+- Discharge planning and home care
+- Prevention strategies and lifestyle modifications
+- Medication teaching and administration
+- Signs/symptoms to report
+- Follow-up care instructions
+
+### 💜 PURPLE BOXES - KEY POINTS/MEMORY AIDS
+Use key-point-box class for:
+- Essential NCLEX concepts to memorize
+- Mnemonics and memory devices
+- Numbers, ranges, and values to remember
+- Quick reference points
+- Test-taking strategies
+- Priority hierarchies
+
+### 💊 MEDICATION BOXES - DRUG INFORMATION
+Use medication-box class for:
+- Specific medication details and dosing
+- Drug calculations and conversions
+- Side effects and contraindications
+- Drug interactions and monitoring
+- Administration techniques
+- Safety considerations
+
+### MANDATORY USAGE REQUIREMENTS:
+- EVERY major condition/topic MUST have at least 2-3 different colored boxes
+- Use RED boxes for anything life-threatening or emergency-related
+- Use BLUE boxes for all nursing intervention content
+- Use YELLOW boxes for all patient education content
+- Use PURPLE boxes for key points and memory aids
+- Use MEDICATION boxes for all drug-related content
+- Create clear visual hierarchy with intentional color placement
+- Ensure consistent formatting throughout the document
+
+### CONTENT ORGANIZATION:
+- Start each condition with pathophysiology in clinical context
+- Follow with RED boxes for critical/emergency aspects
+- Include BLUE boxes for nursing-specific interventions
+- Add YELLOW boxes for patient education components
+- Integrate PURPLE boxes for key learning points
+- Include MEDICATION boxes for relevant drugs
+- Use tables for quick reference data
+- Include image placeholders with detailed descriptions
+
+This creates a visually organized, professional medical study guide optimized for clinical practice and NCLEX preparation.
+` : ''}
 
 ## Important Guidelines
 - Use ONLY the provided source material - do not add external knowledge
